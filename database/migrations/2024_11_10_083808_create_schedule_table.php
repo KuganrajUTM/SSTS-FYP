@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('schedule', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('driver_id')->nullable();
+            $table->string('time_slot');
+            $table->string('location');
+            $table->string('day');
+            $table->foreign('driver_id')->references('id')->on('driver')->onDelete('cascade');
+            $table->timestamps();
+        });
+    } 
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('schedule');
+    }
+};

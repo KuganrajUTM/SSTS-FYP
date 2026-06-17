@@ -1,181 +1,153 @@
 @extends('layout.main-template')
 
 @section('content')
-
 <style>
-  body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #f3f4f6;
-    color: #333;
-  }
-
-  .header-bar {
-    background-color: black;
-    height: 6px;
-    width: 100%;
-    margin-top: -1.5rem;
-    border-radius: 3px;
-  }
-
-  .container-box {
-    background: linear-gradient(135deg, #ffffff, #f9fafb);
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .content-box {
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-  }
-
-  .back-btn {
-    background-color: #0d6efd;
-    color: #fff;
-    font-size: 0.9rem;
-    border-radius: 5px;
-    padding: 8px 16px;
-    font-weight: bold;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .back-btn:hover {
-    background-color: #0b5ed7;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  .issue-payment-btn {
-    background: #ffc404;
-    color: black;
-    font-weight: bold;
-    padding: 12px 25px;
-    border-radius: 6px;
-    font-size: 1rem;
-    border: none;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .issue-payment-btn:hover {
-    background: #ffc404;
-    transform: scale(1.03);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  }
-
-  .title-text {
-    font-weight: bold;
-    font-size: 2rem;
-    color: black;
-    margin-bottom: 10px;
-  }
-
-  .form-label {
-    font-weight: bold;
-    color: #555;
-    font-size: 1rem;
-  }
-
-  .input-field {
-    margin-left: 10px;
-    padding: 10px;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    width: 150px;
-  }
-
-  .highlight {
-    font-weight: bold;
-    color: #333;
-  }
-
-  .info-row {
-    margin-bottom: 20px;
-  }
-
-  .text-center {
-    margin-top: 30px;
-  }
-
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .content-box {
-      padding: 20px;
+    :root {
+      --emerald:    #00b894;
+      --emerald-dk: #007a63;
+      --emerald-lt: #e6f9f5;
+      --navy:       #0a1628;
+      --slate:      #4a5568;
+      --white:      #ffffff;
+      --border:     rgba(0,184,148,0.25);
     }
 
-    .info-row .form-label {
-      font-size: 0.8rem;
+    .page-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        color: var(--navy);
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .back-btn {
+        background: linear-gradient(135deg, var(--navy) 0%, #1a2d4a 100%);
+        color: #fff;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-weight: 600;
+        border: none;
+        transition: opacity 0.2s;
+    }
+
+    .back-btn:hover { opacity: 0.85; color: #fff; }
+
+    .container-box {
+        background: var(--white);
+        padding: 30px;
+        border: 1.5px solid var(--border);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,184,148,0.07);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--navy);
+        font-size: 1rem;
+    }
+
+    .highlight {
+        font-weight: 700;
+        color: var(--navy);
     }
 
     .input-field {
-      font-size: 0.8rem;
+        margin-left: 10px;
+        padding: 10px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        width: 150px;
+        transition: border-color 0.2s;
     }
 
-    .issue-payment-btn {
-      font-size: 0.9rem;
-      padding: 10px 20px;
+    .input-field:focus {
+        outline: none;
+        border-color: var(--emerald);
+        box-shadow: 0 0 0 3px rgba(0,184,148,0.1);
     }
-  }
+
+    .info-row { margin-bottom: 20px; }
+
+    .issue-payment-btn {
+        background: linear-gradient(135deg, var(--emerald) 0%, var(--emerald-dk) 100%);
+        color: #fff;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-size: 1rem;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,184,148,0.2);
+        transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .issue-payment-btn:hover {
+        transform: translateY(-2px);
+        opacity: 0.92;
+    }
+
+    @media (max-width: 768px) {
+        .input-field { font-size: 0.8rem; }
+        .issue-payment-btn { font-size: 0.9rem; padding: 10px 20px; }
+    }
 </style>
 
 <div class="container mt-5">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div class="title-text">Issue Payment</div>
-    <button class="btn back-btn" onclick="history.back()">Back</button>
-  </div>
-
-  <div class="container-box mt-4">
-    <div class="content-box">
-      <form method="POST" action="{{ route('pay-store') }}">
-        @csrf 
-
-        <input type="hidden" name="child_id" value="{{ $customer->id }}">
-        <input type="hidden" name="parent_id" value="{{ $customer->parent->id }}">
-
-        <div class="info-row">
-          <div class="row">
-            <div class="col-md-8">
-              <p><span class="form-label">Parent Name :</span> <span class="highlight">{{ $customer->parent->user->name }}</span></p>
-            </div>
-            <div class="col-md-4">
-              <p><span class="form-label">Child Name :</span> <span class="highlight">{{ $customer->name }}</span></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="info-row">
-          <div class="row">
-            <div class="col-md-8">
-              <p><span class="form-label">Pickup :</span> <span class="highlight">{{ $customer->parent->location }}</span></p>
-            </div>
-            <div class="col-md-4">
-              <p><span class="form-label">Drop-Off :</span> <span class="highlight">{{ $customer->school_name }}</span></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="info-row">
-          <div class="row align-items-center">
-            <div class="col-md-8 d-flex align-items-center">
-              <label for="amount" class="form-label">Enter Amount (RM) <span class="text-danger">*</span>:</label>
-              <input type="number" id="amount" name="amount" class="form-control input-field" placeholder="0.00" aria-label="Amount" required>
-            </div>
-            <div class="col-md-4">
-              <p><span class="form-label">Issue-date :</span> <span class="highlight">{{ Carbon\Carbon::now()->format('d-m-Y') }}</span></p>
-            </div>
-          </div>
-        </div>
-
-        <div class="text-center">
-          <button type="submit" class="btn-warning issue-payment-btn" id="submit">
-            <i class="bi bi-wallet2"></i> Issue Payment
-          </button>
-        </div>
-      </form>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="page-title">Issue Payment</div>
+        <button class="btn back-btn" onclick="history.back()">Back</button>
     </div>
-  </div>
+
+    <div class="container-box mt-4">
+        <form method="POST" action="{{ route('pay-store') }}">
+            @csrf
+
+            <input type="hidden" name="child_id" value="{{ $customer->id }}">
+            <input type="hidden" name="parent_id" value="{{ $customer->parent->id }}">
+
+            <div class="info-row">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p><span class="form-label">Parent Name :</span> <span class="highlight">{{ $customer->parent->user->name }}</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><span class="form-label">Child Name :</span> <span class="highlight">{{ $customer->name }}</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p><span class="form-label">Pickup :</span> <span class="highlight">{{ $customer->parent->location }}</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><span class="form-label">Drop-Off :</span> <span class="highlight">{{ $customer->school_name }}</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="row align-items-center">
+                    <div class="col-md-8 d-flex align-items-center">
+                        <label for="amount" class="form-label">Enter Amount (RM) <span class="text-danger">*</span>:</label>
+                        <input type="number" id="amount" name="amount" class="form-control input-field" placeholder="0.00" aria-label="Amount" required>
+                    </div>
+                    <div class="col-md-4">
+                        <p><span class="form-label">Issue-date :</span> <span class="highlight">{{ Carbon\Carbon::now()->format('d-m-Y') }}</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="issue-payment-btn" id="submit">
+                    <i class="bi bi-wallet2"></i> Issue Payment
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

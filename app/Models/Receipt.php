@@ -16,7 +16,8 @@ class Receipt extends Model
         'rec_num',
         'child_id',
         'parent_id',
-        'payment_method'
+        'payment_method',
+        'proof_path',
     ];
 
     protected $casts = [

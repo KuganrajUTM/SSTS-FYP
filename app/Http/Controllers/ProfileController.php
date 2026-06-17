@@ -33,6 +33,14 @@ class ProfileController extends Controller
     {
         $user = Auth::user(); // Retrieve the authenticated user
 
+        if ($user->role === 'A') {
+            return view('profile', [
+                'user' => $user,
+                'userName' => $user->name,
+                'role' => 'admin'
+            ]);
+        }
+
         if ($user->role === 'P') { // Check if the user is a parent
             $parent = $user->parent; // Retrieve parent's data
             $children = Child::where('parent_id', $parent->id)->with('driver')->get();
@@ -59,6 +67,13 @@ class ProfileController extends Controller
     public function edit()
 {
     $user = Auth::user(); // Logged-in user
+
+    if ($user->role === 'A') {
+        return view('edit', [
+            'user' => $user,
+            'role' => 'admin'
+        ]);
+    }
 
     if ($user->role === 'P') {
         // Parent-specific data
@@ -104,48 +119,77 @@ public function update(Request $request)
         // Parent-specific updates
         $request->validate([
             'location' => 'required|string',
-            'children.*.name' => 'nullable|string',
+            'city'     => 'required|string|max:100',
+            'district' => 'required|string|max:100',
+            'children.*.name'        => 'nullable|string',
             'children.*.school_name' => 'nullable|string',
+            'children.*.city'        => 'nullable|string|max:100',
+            'children.*.district'    => 'nullable|string|max:100',
         ]);
 
-        $user->parent->update(['location' => $request->input('location')]);
+        $user->parent->update([
+            'location' => $request->input('location'),
+            'phone'    => $request->input('phone'),
+            'city'     => $request->input('city'),
+            'district' => $request->input('district'),
+        ]);
 
         // Track existing child IDs
         $existingChildIds = [];
 
         if ($request->has('children')) {
-            foreach ($request->input('children') as $childData) {
-                if (isset($childData['id'])) {
-                    // Update existing child
-                    $child = Child::find($childData['id']);
+            foreach ($request->input('children') as $childKey => $childData) {
+                if (is_numeric($childKey)) {
+                    // Update existing child — key is the child's DB id
+                    $child = Child::where('id', $childKey)
+                        ->where('parent_id', $user->parent->id)
+                        ->first();
                     if ($child) {
-                        $child->update($childData);
+                        $child->update([
+                            'name'        => $childData['name'] ?? $child->name,
+                            'school_name' => $childData['school_name'] ?? null,
+                            'city'        => $childData['city'] ?? null,
+                            'district'    => $childData['district'] ?? null,
+                        ]);
                         $existingChildIds[] = $child->id;
                     }
                 } else {
-                    // Add new child
-                    $newChild = Child::create([
-                        'name' => $childData['name'],
-                        'school_name' => $childData['school_name'],
-                        'parent_id' => $user->parent->id,
-                        'driver_id' => isset($childData['driver_id']) ? $childData['driver_id'] : null, // Assign driver if applicable
-                    ]);
-                    $existingChildIds[] = $newChild->id;
+                    // Add new child — key starts with 'new_'
+                    if (!empty($childData['name'])) {
+                        $newChild = Child::create([
+                            'name'        => $childData['name'],
+                            'school_name' => $childData['school_name'] ?? null,
+                            'city'        => $childData['city'] ?? null,
+                            'district'    => $childData['district'] ?? null,
+                            'parent_id'   => $user->parent->id,
+                            'driver_id'   => null,
+                        ]);
+                        $existingChildIds[] = $newChild->id;
+                    }
                 }
             }
         }
 
-        // Delete removed children
+        // Delete children that were removed from the form
         Child::where('parent_id', $user->parent->id)
             ->whereNotIn('id', $existingChildIds)
             ->delete();
     } elseif ($user->role === 'D') {
-        // Driver-specific updates
         $request->validate([
-            'vehicle_info' => 'required|string',
+            'vehicle_info'        => 'required|string',
+            'city'                => 'nullable|string|max:100',
+            'district'            => 'nullable|string|max:100',
+            'bank_name'           => 'nullable|string|max:100',
+            'bank_account_number' => 'nullable|string|max:50',
         ]);
 
-        $user->driver->update(['vehicle_info' => $request->input('vehicle_info')]);
+        $user->driver->update([
+            'VRN'                 => $request->input('vehicle_info'),
+            'city'                => $request->input('city'),
+            'district'            => $request->input('district'),
+            'bank_name'           => $request->input('bank_name'),
+            'bank_account_number' => $request->input('bank_account_number'),
+        ]);
     }
 
     return redirect()->route('profile.show')->with('success', 'Profile updated successfully.');
@@ -153,6 +197,21 @@ public function update(Request $request)
 }
 
 
+
+public function updateLocationInfo(Request $request)
+{
+    $request->validate([
+        'city'     => 'required|string|max:100',
+        'district' => 'required|string|max:100',
+    ]);
+
+    Auth::user()->driver->update([
+        'city'     => $request->city,
+        'district' => $request->district,
+    ]);
+
+    return redirect()->route('main')->with('success', 'Location info saved.');
+}
 
 public function removeAccount()
 {

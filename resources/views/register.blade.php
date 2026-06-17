@@ -1,239 +1,833 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Parent Registration – SSTS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
-    <style>
-        body {
-            background-image: url('assets/img/malaysia.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            background-attachment: fixed;
-        }
+  <style>
+    :root {
+      --emerald:    #00b894;
+      --emerald-dk: #007a63;
+      --emerald-lt: #e6f9f5;
+      --navy:       #0a1628;
+      --slate:      #4a5568;
+      --white:      #ffffff;
+      --bg:         #f5f7fa;
+      --card-bg:    #ffffff;
+      --input-bg:   #f0f4f8;
+      --border:     rgba(0,184,148,0.25);
+    }
 
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+      padding: 2.5rem 0 6rem;
+    }
 
-        .card-header h3 {
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        105deg,
+        transparent 0px, transparent 38px,
+        rgba(0,184,148,0.04) 38px, rgba(0,184,148,0.04) 40px
+      );
+      animation: roadLines 6s linear infinite;
+      pointer-events: none;
+    }
 
-        .card-body {
-            padding: 2rem;
-        }
+    @keyframes roadLines {
+      from { background-position: 0 0; }
+      to   { background-position: 200px 0; }
+    }
 
-        .form-group label {
-            font-weight: 600;
-            color: #333;
-        }
+    .glow-tr {
+      position: fixed; width: 500px; height: 500px;
+      top: -120px; right: -120px;
+      background: radial-gradient(circle, rgba(0,184,148,0.1) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
 
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
+    .glow-bl {
+      position: fixed; width: 350px; height: 350px;
+      bottom: -100px; left: -80px;
+      background: radial-gradient(circle, rgba(0,184,148,0.07) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
 
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
+    /* ── ROAD ── */
+    .road-strip {
+      position: fixed; bottom: 60px; left: 0; right: 0;
+      height: 52px; z-index: 1; pointer-events: none;
+    }
 
-        a {
-            color: #007bff;
-        }
+    .road-surface {
+      position: absolute; inset: 0;
+      background: rgba(0,184,148,0.06);
+      border-top: 2px solid rgba(0,184,148,0.22);
+      border-bottom: 2px solid rgba(0,184,148,0.22);
+    }
 
-        a:hover {
-            color: #0056b3;
-            text-decoration: underline;
-        }
+    .road-dash {
+      position: absolute; top: 50%; left: 0;
+      width: 200%; height: 2px;
+      transform: translateY(-50%);
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(0,184,148,0.45) 0px, rgba(0,184,148,0.45) 40px,
+        transparent 40px, transparent 70px
+      );
+      animation: dashMove 1.1s linear infinite;
+    }
 
-        /* Custom styles for file input */
-        .custom-file-input {
-            cursor: pointer;
-        }
+    @keyframes dashMove {
+      from { transform: translateY(-50%) translateX(0); }
+      to   { transform: translateY(-50%) translateX(-70px); }
+    }
 
-        .custom-file-label::after {
-            content: "Browse";
-            background-color: #007bff;
-            color: white;
-            border-radius: 0 5px 5px 0;
-        }
+    /* ── BUS ── */
+    .bus-container {
+      position: fixed; bottom: 68px; left: -220px;
+      z-index: 2; pointer-events: none;
+      animation: busDrive 13s linear infinite;
+    }
 
-        .custom-file-label {
-            border-radius: 5px;
-        }
+    @keyframes busDrive {
+      0%   { left: -220px; }
+      100% { left: calc(100vw + 30px); }
+    }
 
-        .text-danger {
-            font-size: 0.9rem;
-        }
-    </style>
+    .bus-svg-wrap { animation: busRock 0.4s ease-in-out infinite alternate; }
 
+    @keyframes busRock {
+      from { transform: translateY(0px); }
+      to   { transform: translateY(-2.5px); }
+    }
+
+    .wheel {
+      animation: spin 0.45s linear infinite;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .puff { position: absolute; left: -14px; bottom: 18px; }
+
+    .puff span {
+      display: block; border-radius: 50%;
+      background: rgba(0,184,148,0.3);
+      margin-bottom: 3px;
+      animation: puffUp 0.9s ease-out infinite;
+    }
+
+    .puff span:nth-child(1) { width: 9px; height: 9px; }
+    .puff span:nth-child(2) { width: 6px; height: 6px; animation-delay: 0.3s; opacity: 0.6; }
+    .puff span:nth-child(3) { width: 4px; height: 4px; animation-delay: 0.6s; opacity: 0.4; }
+
+    @keyframes puffUp {
+      0%   { opacity: 0.6; transform: translateY(0) scale(1); }
+      100% { opacity: 0;   transform: translateY(-20px) scale(1.8); }
+    }
+
+    /* ── CARD ── */
+    .register-wrap {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 500px;
+      padding: 1rem;
+      animation: fadeUp 0.65s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .register-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 8px 32px rgba(0,184,148,0.08);
+    }
+
+    .brand-top {
+      display: flex; align-items: center; gap: 0.65rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .brand-top img { height: 34px; width: auto; }
+
+    .brand-top .name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem; font-weight: 800;
+      color: var(--navy); letter-spacing: 0.04em;
+    }
+
+    .brand-top .name span { color: var(--emerald); }
+
+    .register-card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.7rem; font-weight: 800;
+      color: var(--navy); margin-bottom: 0.3rem;
+    }
+
+    .register-card .sub {
+      font-size: 0.86rem; color: var(--slate);
+      margin-bottom: 1.75rem;
+    }
+
+    .form-section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--emerald);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(0,184,148,0.2);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    label {
+      font-size: 0.78rem; font-weight: 600;
+      color: var(--slate) !important;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    .input-wrap { position: relative; margin-bottom: 1.1rem; }
+
+    .input-wrap i.icon-left {
+      position: absolute; left: 0.9rem; top: 50%;
+      transform: translateY(-50%);
+      color: #a0aab4; font-size: 0.95rem;
+      pointer-events: none;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1.5px solid #dde3ea;
+      border-radius: 10px;
+      padding: 0.7rem 1rem 0.7rem 2.5rem;
+      color: var(--navy);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      transition: border-color 0.2s, background 0.2s;
+      outline: none;
+    }
+
+    .input-wrap input::placeholder { color: #a0aab4; }
+
+    .input-wrap input:focus {
+      border-color: var(--emerald);
+      background: var(--emerald-lt);
+    }
+
+    .toggle-pw {
+      position: absolute; right: 0.9rem; top: 50%;
+      transform: translateY(-50%);
+      color: #a0aab4; cursor: pointer;
+      font-size: 0.95rem; transition: color 0.2s;
+    }
+
+    .toggle-pw:hover { color: var(--emerald); }
+
+    .err-text { font-size: 0.78rem; color: #e74c3c; margin-top: 0.3rem; }
+
+    .alert-ssts {
+      background: rgba(231,76,60,0.08);
+      border: 1px solid rgba(231,76,60,0.25);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      font-size: 0.84rem; color: #e74c3c;
+      margin-bottom: 1.4rem;
+      display: flex; align-items: flex-start; gap: 0.6rem;
+    }
+
+    .alert-ssts i { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--emerald);
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.97rem; font-weight: 700;
+      border: none; border-radius: 10px;
+      padding: 0.82rem; cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(0,184,148,0.25);
+      letter-spacing: 0.03em;
+      margin-top: 0.5rem;
+    }
+
+    .btn-submit:hover {
+      background: var(--emerald-dk);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,184,148,0.35);
+    }
+
+    .divider {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin: 1.4rem 0;
+    }
+
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: #e8ecf0;
+    }
+
+    .divider span { font-size: 0.73rem; color: #a0aab4; white-space: nowrap; }
+
+    .bottom-links {
+      text-align: center; font-size: 0.86rem;
+      color: var(--slate);
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+
+    .bottom-links a {
+      color: var(--emerald); font-weight: 600;
+      text-decoration: none; transition: color 0.2s;
+    }
+
+    .bottom-links a:hover { color: var(--emerald-dk); }
+
+    /* ── LOCATION SUGGESTIONS ── */
+    .suggestions-box {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,184,148,0.1);
+      z-index: 9999;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 4px;
+    }
+
+    .suggestion-item {
+      padding: 0.6rem 1rem;
+      font-size: 0.85rem;
+      color: var(--navy);
+      cursor: pointer;
+      border-bottom: 1px solid #f0f4f8;
+      transition: background 0.15s;
+      display: flex; align-items: flex-start; gap: 0.5rem;
+    }
+
+    .suggestion-item i {
+      color: var(--emerald);
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .suggestion-item:hover { background: var(--emerald-lt); }
+    .suggestion-item:last-child { border-bottom: none; }
+
+    .suggestion-loading {
+      padding: 0.7rem 1rem;
+      font-size: 0.84rem;
+      color: #a0aab4;
+      text-align: center;
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 576px) {
+      body { padding: 1.5rem 0 6rem; }
+      .register-card { padding: 1.75rem 1.25rem; }
+      .register-wrap { padding: 0.75rem; }
+      .register-card h2 { font-size: 1.4rem; }
+      .register-card .sub { font-size: 0.82rem; }
+      .brand-top img { height: 28px; }
+      .brand-top .name { font-size: 1rem; }
+      .input-wrap input { font-size: 0.86rem; padding: 0.65rem 0.9rem 0.65rem 2.4rem; }
+      label { font-size: 0.73rem; }
+      .btn-submit { font-size: 0.9rem; padding: 0.75rem; }
+      .bus-svg-wrap svg { width: 150px; height: 60px; }
+      .bus-container { bottom: 70px; }
+      .road-strip { bottom: 60px; height: 44px; }
+    }
+
+    @media (max-width: 360px) {
+      .register-card { padding: 1.5rem 1rem; }
+      .register-card h2 { font-size: 1.25rem; }
+      .bus-svg-wrap svg { width: 120px; height: 48px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container mt-5 mb-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <ul class="nav nav-tabs mt-3" id="registrationTabs" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="parent-tab" data-toggle="tab" href="#parent" role="tab" aria-controls="parent" aria-selected="true">Parent</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="driver-tab" data-toggle="tab" href="#driver" role="tab" aria-controls="driver" aria-selected="false">Driver</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="card-body">
-                        <div class="tab-content" id="registrationTabsContent">
-                            <!-- Parent Registration Form -->
-                            <div class="tab-pane fade show active" id="parent" role="tabpanel" aria-labelledby="parent-tab">
-                                <h3 class="text-center" style="text-decoration:underline;"><strong>Parent Registration</strong></h3>
-                                <form class="mt-2" action="{{ route('user-register') }}" method="POST">
-                                    @csrf
 
-                                    <div class="form-group">
-                                        <label for="fullname">Full Name <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="fullname" name="fullname" placeholder="Enter Full Name" required>
-                                        @error('fullname')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="username">Username <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter Username" required>
-                                        @error('username')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="email">Email address <span class="text-danger">*</span></label>
-                                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required>
-                                        @error('email')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="password">Password <span class="text-danger">*</span></label>
-                                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
-                                        @error('password')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="password_confirmation">Confirm Password <span class="text-danger">*</span></label>
-                                        <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Confirm Password" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="location">Location <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="location" name="location" placeholder="Enter location" required>
-                                        @error('location')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <button type="submit" class="btn btn-primary btn-block">Create Account</button>
-                                    <p class="text-center mt-3">Have an account? <a href="{{ route('login') }}">Go to login</a></p>
-                                </form>
-                            </div>
+<div class="glow-tr"></div>
+<div class="glow-bl"></div>
 
-                            <!-- Driver Registration Form -->
-                            <div class="tab-pane fade" id="driver" role="tabpanel" aria-labelledby="driver-tab">
-                                <h3 class="text-center" style="text-decoration:underline;"><strong>Driver Registration</strong></h3>
-                                <form action="{{ route('driver-register') }}" method="POST" enctype="multipart/form-data">
-                                    @csrf
-                                    <input type="hidden" name="role" value="D">
-                                    <div class="form-group">
-                                        <label for="fullname">Name <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="fullname" name="fullname" placeholder="Enter Name" required>
-                                        @error('fullname')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="username">Username <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter Username" required>
-                                        @error('username')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="email">Email address <span class="text-danger">*</span></label>
-                                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required>
-                                        @error('email')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="password">Password <span class="text-danger">*</span></label>
-                                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" required>
-                                        @error('password')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="password_confirmation">Confirm Password <span class="text-danger">*</span></label>
-                                        <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Confirm Password" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="vrn">Vehicle Number <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="vrn" name="vrn" placeholder="Enter Vehicle Details" required>
-                                        @error('vrn')
-                                            <p class="text-danger mt-1">{{ $message }}</p>
-                                        @enderror
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="license">Upload License (PDF only) <span class="text-danger">*</span></label>
-                                        <div class="custom-file">
-                                            <input type="file" class="custom-file-input" id="license" name="license" accept="application/pdf" required>
-                                            <label class="custom-file-label" for="license">Choose file</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="spad">Upload SPAD Document (PDF only) <span class="text-danger">*</span></label>
-                                        <div class="custom-file">
-                                            <input type="file" class="custom-file-input" id="spad" name="spad" accept="application/pdf" required>
-                                            <label class="custom-file-label" for="spad">Choose file</label>
-                                            @error('spad')
-                                                <p class="text-danger mt-1">{{ $message }}</p>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary btn-block">Create Account</button>
-                                    <p class="text-center mt-3">Have an account? <a href="{{ route('login') }}">Go to login</a></p>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="road-strip">
+  <div class="road-surface"></div>
+  <div class="road-dash"></div>
+</div>
+
+<div class="bus-container">
+  <div class="puff"><span></span><span></span><span></span></div>
+  <div class="bus-svg-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" width="210" height="82" viewBox="0 0 210 82">
+      <rect x="12" y="6" width="178" height="54" rx="8" fill="#0d2318" stroke="#00b894" stroke-width="1.8"/>
+      <rect x="16" y="6" width="170" height="10" rx="5" fill="#00b894" opacity="0.15"/>
+      <rect x="166" y="9" width="21" height="48" rx="5" fill="#091c12" stroke="#00b894" stroke-width="1.5"/>
+      <rect x="169" y="13" width="15" height="22" rx="3" fill="#00b894" opacity="0.22"/>
+      <line x1="172" y1="14" x2="169" y2="34" stroke="#80ffd4" stroke-width="1" opacity="0.25"/>
+      <rect x="169" y="40" width="15" height="9" rx="2" fill="#00b894" opacity="0.65"/>
+      <rect x="171" y="41.5" width="11" height="6" rx="1" fill="#80ffd4" opacity="0.45"/>
+      <rect x="22"  y="13" width="23" height="19" rx="3" fill="#00b894" opacity="0.18"/>
+      <rect x="52"  y="13" width="23" height="19" rx="3" fill="#00b894" opacity="0.18"/>
+      <rect x="82"  y="13" width="23" height="19" rx="3" fill="#00b894" opacity="0.18"/>
+      <rect x="112" y="13" width="23" height="19" rx="3" fill="#00b894" opacity="0.18"/>
+      <rect x="142" y="13" width="20" height="19" rx="3" fill="#00b894" opacity="0.18"/>
+      <line x1="25"  y1="15" x2="23"  y2="30" stroke="#80ffd4" stroke-width="1" opacity="0.28"/>
+      <line x1="55"  y1="15" x2="53"  y2="30" stroke="#80ffd4" stroke-width="1" opacity="0.28"/>
+      <line x1="85"  y1="15" x2="83"  y2="30" stroke="#80ffd4" stroke-width="1" opacity="0.28"/>
+      <line x1="115" y1="15" x2="113" y2="30" stroke="#80ffd4" stroke-width="1" opacity="0.28"/>
+      <line x1="145" y1="15" x2="143" y2="30" stroke="#80ffd4" stroke-width="1" opacity="0.28"/>
+      <rect x="22" y="37" width="18" height="21" rx="2" fill="#081510" stroke="#00b894" stroke-width="1"/>
+      <line x1="31" y1="39" x2="31" y2="57" stroke="#00b894" stroke-width="0.8" opacity="0.5"/>
+      <rect x="28" y="47" width="5" height="2" rx="1" fill="#00b894" opacity="0.5"/>
+      <rect x="12" y="37" width="178" height="3" rx="1" fill="#00b894" opacity="0.3"/>
+      <text x="98" y="55" text-anchor="middle" font-family="'Syne',sans-serif" font-size="8.5" font-weight="800" fill="#00b894" opacity="0.8" letter-spacing="2.5">SSTS</text>
+      <rect x="9" y="52" width="5" height="7" rx="1" fill="#00b894" opacity="0.4"/>
+      <g class="wheel">
+        <circle cx="48"  cy="65" r="12" fill="#091812" stroke="#00b894" stroke-width="1.8"/>
+        <circle cx="48"  cy="65" r="5.5" fill="#00b894" opacity="0.25"/>
+        <circle cx="48"  cy="65" r="2"   fill="#00b894" opacity="0.5"/>
+        <line x1="48" y1="53" x2="48" y2="77" stroke="#00b894" stroke-width="1" opacity="0.4"/>
+        <line x1="36" y1="65" x2="60" y2="65" stroke="#00b894" stroke-width="1" opacity="0.4"/>
+        <circle cx="48" cy="65" r="10" fill="none" stroke="#00b894" stroke-width="0.5" stroke-dasharray="4 3" opacity="0.35"/>
+      </g>
+      <g class="wheel">
+        <circle cx="156" cy="65" r="12" fill="#091812" stroke="#00b894" stroke-width="1.8"/>
+        <circle cx="156" cy="65" r="5.5" fill="#00b894" opacity="0.25"/>
+        <circle cx="156" cy="65" r="2"   fill="#00b894" opacity="0.5"/>
+        <line x1="156" y1="53" x2="156" y2="77" stroke="#00b894" stroke-width="1" opacity="0.4"/>
+        <line x1="144" y1="65" x2="168" y2="65" stroke="#00b894" stroke-width="1" opacity="0.4"/>
+        <circle cx="156" cy="65" r="10" fill="none" stroke="#00b894" stroke-width="0.5" stroke-dasharray="4 3" opacity="0.35"/>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- Register Card -->
+<div class="register-wrap">
+  <div class="register-card">
+
+    <div class="brand-top">
+      <img src="{{ asset('assets/img/photo_2024-10-22_11-35-22-Photoroom.png') }}" alt="SSTS Logo">
+      <span class="name">SS<span>TS</span></span>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Update the file input label on file selection
-        $('.custom-file-input').on('change', function() {
-            var fileName = $(this).val().split('\\').pop();
-            $(this).siblings('.custom-file-label').addClass('selected').html(fileName);
+    <h2>Create Account</h2>
+    <p class="sub">Register as a parent to get started with SSTS.</p>
+
+    @if (session('error'))
+      <div class="alert-ssts">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <div>{{ session('error') }}</div>
+      </div>
+    @endif
+
+    @if ($errors->any())
+      <div class="alert-ssts">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <div>
+          @foreach ($errors->all() as $error)
+            {{ $error }}{{ !$loop->last ? ' · ' : '' }}
+          @endforeach
+        </div>
+      </div>
+    @endif
+
+    <div class="form-section-title">
+      <i class="bi bi-person-heart"></i> Parent Details
+    </div>
+
+    <form action="{{ route('user-register') }}" method="POST" novalidate>
+      @csrf
+
+      <div>
+        <label>Full Name <span style="color:#e74c3c">*</span></label>
+        <div class="input-wrap">
+          <i class="bi bi-person icon-left"></i>
+          <input type="text" name="fullname" placeholder="Enter full name" value="{{ old('fullname') }}">
+        </div>
+        @error('fullname')<p class="err-text">{{ $message }}</p>@enderror
+      </div>
+
+      <div>
+        <label>Username <span style="color:#e74c3c">*</span></label>
+        <div class="input-wrap">
+          <i class="bi bi-at icon-left"></i>
+          <input type="text" name="username" placeholder="Enter username" value="{{ old('username') }}">
+        </div>
+        @error('username')<p class="err-text">{{ $message }}</p>@enderror
+      </div>
+
+      <div>
+        <label>Email Address <span style="color:#e74c3c">*</span></label>
+        <div class="input-wrap">
+          <i class="bi bi-envelope icon-left"></i>
+          <input type="email" name="email" placeholder="you@example.com" value="{{ old('email') }}">
+        </div>
+        @error('email')<p class="err-text">{{ $message }}</p>@enderror
+      </div>
+
+      <div>
+        <label>Password <span style="color:#e74c3c">*</span></label>
+        <div class="input-wrap">
+          <i class="bi bi-lock icon-left"></i>
+          <input type="password" id="p-password" name="password" placeholder="••••••••">
+          <i class="bi bi-eye toggle-pw" onclick="togglePw('p-password', this)"></i>
+        </div>
+        @error('password')<p class="err-text">{{ $message }}</p>@enderror
+      </div>
+
+      <div>
+        <label>Confirm Password <span style="color:#e74c3c">*</span></label>
+        <div class="input-wrap">
+          <i class="bi bi-lock-fill icon-left"></i>
+          <input type="password" id="p-confirm" name="password_confirmation" placeholder="••••••••">
+          <i class="bi bi-eye toggle-pw" onclick="togglePw('p-confirm', this)"></i>
+        </div>
+      </div>
+
+      <!-- ── LOCATION WITH OPENSTREETMAP AUTOCOMPLETE ── -->
+      <label>Home Location <span style="color:#e74c3c">*</span></label>
+      <div class="input-wrap" style="position:relative">
+        <i class="bi bi-geo-alt icon-left"></i>
+        <input type="text" id="location-input" name="location"
+               placeholder="Search for your city or address"
+               value="{{ old('location') }}" autocomplete="off">
+        <div class="suggestions-box" id="location-suggestions" style="display:none;"></div>
+      </div>
+      @error('location')<p class="err-text">{{ $message }}</p>@enderror
+
+      <div>
+        <label>City <span style="color:#e74c3c">*</span></label>
+        <div class="input-wrap">
+          <i class="bi bi-building icon-left"></i>
+          <input type="text" name="city" placeholder="e.g. Johor Bahru" value="{{ old('city') }}">
+        </div>
+        @error('city')<p class="err-text">{{ $message }}</p>@enderror
+      </div>
+
+      <div>
+        <label>District <span style="color:#e74c3c">*</span></label>
+        <div class="input-wrap">
+          <i class="bi bi-map icon-left"></i>
+          <input type="text" name="district" placeholder="e.g. Skudai" value="{{ old('district') }}">
+        </div>
+        @error('district')<p class="err-text">{{ $message }}</p>@enderror
+      </div>
+
+      <button type="submit" class="btn-submit">Create Account</button>
+    </form>
+
+    <div class="divider"><span>Already have an account?</span></div>
+
+    <div class="bottom-links">
+      <span><a href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Go to Login</a></span>
+      <span>Registering as a driver? <a href="#" id="driverRegisterBtn">Register here</a></span>
+    </div>
+
+  </div>
+</div>
+
+{{-- Driver Key Modal --}}
+<div class="modal fade" id="driverKeyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px; overflow:hidden; border:1.5px solid rgba(0,184,148,0.25);">
+      <div class="modal-header" style="background:#e6f9f5; border-bottom:1.5px solid rgba(0,184,148,0.25);">
+        <h5 class="modal-title" id="dkModalTitle" style="font-family:'Syne',sans-serif; color:#0a1628; font-weight:700;">
+          <i class="bi bi-key me-2" style="color:#00b894;"></i> Driver Registration Key
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+
+        {{-- TAB 1: Enter Key --}}
+        <div id="tabEnterKey">
+          <p style="font-size:0.88rem; color:#4a5568; margin-bottom:1.2rem;">
+            Driver accounts require a unique key authorised by our manager. Enter your key below to proceed.
+          </p>
+          <label style="font-size:0.75rem; font-weight:600; color:#4a5568; text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:0.5rem;">
+            Enter 6-Digit Key
+          </label>
+          <input type="text" id="driverKeyInput" maxlength="6" placeholder="_ _ _ _ _ _"
+                 style="width:100%; text-align:center; font-size:2rem; letter-spacing:0.6em;
+                        font-family:'Syne',sans-serif; font-weight:700;
+                        background:#f0f4f8; border:1.5px solid #dde3ea; border-radius:10px;
+                        padding:0.65rem 1rem; color:#0a1628; outline:none; transition:border-color 0.2s;"
+                 oninput="this.value=this.value.replace(/[^0-9]/g,''); clearKeyError();">
+          <p id="keyError" style="display:none; font-size:0.8rem; color:#e74c3c; margin-top:0.45rem; margin-bottom:0;"></p>
+          <p style="margin-top:1.1rem; margin-bottom:0; font-size:0.84rem; color:#4a5568; text-align:center;">
+            Don't have a key?
+            <a href="#" onclick="showRequestTab(); return false;"
+               style="color:#00b894; font-weight:600; text-decoration:none;">Request one here</a>
+          </p>
+        </div>
+
+        {{-- TAB 2: Request Key --}}
+        <div id="tabRequestKey" style="display:none;">
+          <p style="font-size:0.88rem; color:#4a5568; margin-bottom:1.2rem;">
+            Submit your details and the manager will email your registration key to you.
+          </p>
+          <div style="margin-bottom:0.9rem;">
+            <label style="font-size:0.75rem; font-weight:600; color:#4a5568; text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:0.4rem;">Full Name</label>
+            <input type="text" id="reqName" placeholder="Your full name"
+                   style="width:100%; background:#f0f4f8; border:1.5px solid #dde3ea; border-radius:9px;
+                          padding:0.55rem 0.9rem; font-size:0.92rem; color:#0a1628; outline:none;">
+          </div>
+          <div style="margin-bottom:0.9rem;">
+            <label style="font-size:0.75rem; font-weight:600; color:#4a5568; text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:0.4rem;">Email Address</label>
+            <input type="email" id="reqEmail" placeholder="your@email.com"
+                   style="width:100%; background:#f0f4f8; border:1.5px solid #dde3ea; border-radius:9px;
+                          padding:0.55rem 0.9rem; font-size:0.92rem; color:#0a1628; outline:none;">
+          </div>
+          <div style="margin-bottom:0.9rem;">
+            <label style="font-size:0.75rem; font-weight:600; color:#4a5568; text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:0.4rem;">Contact Number</label>
+            <input type="text" id="reqContact" placeholder="e.g. 0123456789"
+                   style="width:100%; background:#f0f4f8; border:1.5px solid #dde3ea; border-radius:9px;
+                          padding:0.55rem 0.9rem; font-size:0.92rem; color:#0a1628; outline:none;">
+          </div>
+          <p id="reqError" style="display:none; font-size:0.8rem; color:#e74c3c; margin-top:0.3rem; margin-bottom:0;"></p>
+          <p id="reqSuccess" style="display:none; font-size:0.84rem; color:#00b894; font-weight:600; margin-top:0.3rem; margin-bottom:0;"></p>
+          <p style="margin-top:1rem; margin-bottom:0; font-size:0.84rem; color:#4a5568; text-align:center;">
+            Already have a key?
+            <a href="#" onclick="showEnterKeyTab(); return false;"
+               style="color:#00b894; font-weight:600; text-decoration:none;">Enter it here</a>
+          </p>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="border-top:1.5px solid rgba(0,184,148,0.25); gap:0.5rem;">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="verifyKeyBtn" onclick="verifyDriverKey()"
+                style="background:#00b894; color:#fff; border:none; border-radius:8px;
+                       padding:0.5rem 1.6rem; font-weight:700; font-family:'Syne',sans-serif;
+                       cursor:pointer; transition:background 0.2s; font-size:0.92rem;">
+          Verify Key
+        </button>
+        <button type="button" id="submitReqBtn" onclick="submitKeyRequest()"
+                style="display:none; background:linear-gradient(135deg,#f39c12,#d68910); color:#fff; border:none;
+                       border-radius:8px; padding:0.5rem 1.6rem; font-weight:700; font-family:'Syne',sans-serif;
+                       cursor:pointer; transition:opacity 0.2s; font-size:0.92rem;">
+          Submit Request
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.getElementById('driverRegisterBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('driverKeyInput').value = '';
+    document.getElementById('keyError').style.display = 'none';
+    showEnterKeyTab();
+    new bootstrap.Modal(document.getElementById('driverKeyModal')).show();
+    setTimeout(() => document.getElementById('driverKeyInput').focus(), 400);
+  });
+
+  function showEnterKeyTab() {
+    document.getElementById('tabEnterKey').style.display = '';
+    document.getElementById('tabRequestKey').style.display = 'none';
+    document.getElementById('verifyKeyBtn').style.display = '';
+    document.getElementById('submitReqBtn').style.display = 'none';
+    document.getElementById('dkModalTitle').innerHTML = '<i class="bi bi-key me-2" style="color:#00b894;"></i> Driver Registration Key';
+  }
+
+  function showRequestTab() {
+    document.getElementById('tabEnterKey').style.display = 'none';
+    document.getElementById('tabRequestKey').style.display = '';
+    document.getElementById('verifyKeyBtn').style.display = 'none';
+    document.getElementById('submitReqBtn').style.display = '';
+    document.getElementById('reqError').style.display = 'none';
+    document.getElementById('reqSuccess').style.display = 'none';
+    document.getElementById('dkModalTitle').innerHTML = '<i class="bi bi-envelope me-2" style="color:#f39c12;"></i> Request a Driver Key';
+  }
+
+  function clearKeyError() {
+    document.getElementById('keyError').style.display = 'none';
+    document.getElementById('driverKeyInput').style.borderColor = '#dde3ea';
+  }
+
+  function verifyDriverKey() {
+    const input  = document.getElementById('driverKeyInput');
+    const errEl  = document.getElementById('keyError');
+    const btn    = document.getElementById('verifyKeyBtn');
+    const code   = input.value.trim();
+
+    if (code.length !== 6) {
+      errEl.textContent = 'Please enter the full 6-digit key.';
+      errEl.style.display = 'block';
+      input.style.borderColor = '#e74c3c';
+      return;
+    }
+
+    btn.textContent = 'Verifying…';
+    btn.disabled = true;
+
+    fetch('{{ route("driver-key.validate") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ key_code: code })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.valid) {
+        window.location.href = '{{ route("driver-register-page") }}';
+      } else {
+        errEl.textContent = data.message || 'Invalid key. Please contact the manager.';
+        errEl.style.display = 'block';
+        input.style.borderColor = '#e74c3c';
+        btn.textContent = 'Verify Key';
+        btn.disabled = false;
+      }
+    })
+    .catch(() => {
+      errEl.textContent = 'Connection error. Please try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Verify Key';
+      btn.disabled = false;
+    });
+  }
+
+  function submitKeyRequest() {
+    const name    = document.getElementById('reqName').value.trim();
+    const email   = document.getElementById('reqEmail').value.trim();
+    const contact = document.getElementById('reqContact').value.trim();
+    const errEl   = document.getElementById('reqError');
+    const sucEl   = document.getElementById('reqSuccess');
+    const btn     = document.getElementById('submitReqBtn');
+
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+
+    if (!name || !email || !contact) {
+      errEl.textContent = 'Please fill in all fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.textContent = 'Submitting…';
+    btn.disabled = true;
+
+    fetch('{{ route("driver-key.request") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ name, email, contact })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        sucEl.textContent = data.message;
+        sucEl.style.display = 'block';
+        document.getElementById('reqName').value = '';
+        document.getElementById('reqEmail').value = '';
+        document.getElementById('reqContact').value = '';
+        btn.textContent = 'Request Sent ✓';
+        setTimeout(() => {
+          bootstrap.Modal.getInstance(document.getElementById('driverKeyModal')).hide();
+          btn.textContent = 'Submit Request';
+          btn.disabled = false;
+        }, 2500);
+      } else {
+        errEl.textContent = data.message || 'Failed to submit request. Please try again.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Submit Request';
+        btn.disabled = false;
+      }
+    })
+    .catch(() => {
+      errEl.textContent = 'Connection error. Please try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Submit Request';
+      btn.disabled = false;
+    });
+  }
+</script>
+<script>
+  const locInput = document.getElementById('location-input');
+  const locSuggestions = document.getElementById('location-suggestions');
+  let debounceTimer;
+
+  locInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    const query = this.value.trim();
+
+    if (query.length < 3) {
+      locSuggestions.style.display = 'none';
+      return;
+    }
+
+    locSuggestions.innerHTML = '<div class="suggestion-loading"><i class="bi bi-arrow-repeat"></i> Searching...</div>';
+    locSuggestions.style.display = 'block';
+
+    debounceTimer = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=my&format=json&limit=5&addressdetails=1`, {
+        headers: { 'Accept-Language': 'en' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        locSuggestions.innerHTML = '';
+        if (data.length === 0) {
+          locSuggestions.innerHTML = '<div class="suggestion-loading">No results found</div>';
+          return;
+        }
+
+        data.forEach(place => {
+          const item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.innerHTML = `<i class="bi bi-geo-alt-fill"></i> ${place.display_name}`;
+          item.addEventListener('click', () => {
+            locInput.value = place.display_name;
+            locSuggestions.style.display = 'none';
+          });
+          locSuggestions.appendChild(item);
         });
-    </script>
+      })
+      .catch(() => {
+        locSuggestions.innerHTML = '<div class="suggestion-loading">Error connecting to map server</div>';
+      });
+    }, 500);
+  });
+
+  // Close suggestions box if clicked outside
+  document.addEventListener('click', function(e) {
+    if (!locInput.contains(e.target) && !locSuggestions.contains(e.target)) {
+      locSuggestions.style.display = 'none';
+    }
+  });
+</script>
 </body>
 </html>

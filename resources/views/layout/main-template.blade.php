@@ -1,48 +1,91 @@
-<!-- resources/views/layouts/app.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
+<head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>SSTS - EduTransit</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ asset('css/styles.css') }}">
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    @yield('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+    <script src="https://unpkg.com/@laravel/echo@1.15.3/dist/echo.js"></script>
 
-    <head>
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>EduTransit</title>
-        <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
-        <link rel="stylesheet" type="text/css" href="{{ asset('css/styles.css') }}">
-        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --emerald:    #00b894;
+            --emerald-dk: #007a63;
+            --emerald-lt: #e6f9f5;
+            --navy:       #0a1628;
+            --slate:      #4a5568;
+            --bg:         #f5f7fa;
+        }
 
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--bg) !important;
+        }
 
-    </head>
+        /* Ambient Theme Elements */
+        .glow-tr {
+            position: fixed; width: 600px; height: 600px;
+            top: -150px; right: -150px;
+            background: radial-gradient(circle, rgba(0,184,148,0.08) 0%, transparent 70%);
+            pointer-events: none; z-index: -1;
+        }
 
-    <body class="sb-nav-fixed">
+        /* Animated Road Strip at bottom */
+        .road-strip {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 6px; z-index: 1050; pointer-events: none;
+            background: var(--emerald);
+            box-shadow: 0 -2px 10px rgba(0,184,148,0.2);
+        }
 
-      @include('layout.header')
+        #layoutSidenav_nav { background-color: var(--navy) !important; }
+        
+        .sb-sidenav-dark { background-color: var(--navy) !important; }
+        
+        .sb-sidenav-dark .sb-sidenav-menu .nav-link .sb-nav-link-icon {
+            color: var(--emerald);
+        }
 
-        <div id="layoutSidenav">
+        /* Content Headers */
+        h1, .breadcrumb-item.active {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            color: var(--navy);
+        }
+    </style>
+</head>
 
-            @include('layout.nav-menu')
+<body class="sb-nav-fixed">
+    <div class="glow-tr"></div>
+    <div class="road-strip"></div>
 
-            <div id="layoutSidenav_content">
+    @include('layout.header')
 
-                <main>
+    <div id="layoutSidenav">
+        @include('layout.nav-menu')
 
-                    <div class="container-fluid px-4">
-
-                        @yield('content')
-
-                    </div>
-
-                </main>
-
-                @include('layout.footer')
-
-            </div>
-
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+                    @yield('force-theme')
+                    @yield('content')
+                </div>
+            </main>
+            @include('layout.footer')
         </div>
+    </div>
 
-    </body>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    
+    <script src="{{ asset('js/scripts.js') }}"></script>
+    @yield('scripts')
+</body>
 </html>

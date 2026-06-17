@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ann;
+use App\Models\User;
+use App\Models\Payment;
+use App\Models\SosMessage;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Log;
 
 class AnnController extends Controller
 {
@@ -24,21 +27,57 @@ class AnnController extends Controller
         return redirect()->route('login')->withErrors(['error' => 'User not logged in']);
     }
 
+    $sosMessages = collect();
+
+    // Auto-delete SOS messages older than 24 hours (runs on every page load)
+    if ($userRole === 'P') {
+        SosMessage::where('created_at', '<', now()->subHours(24))->get()->each(function ($sos) {
+            $filePath = public_path('sos-audio/' . $sos->audio_path);
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
+            $sos->delete();
+        });
+    }
+
+    $nearDuePayments = collect();
+    $overduePayments = collect();
+
     if($userRole === 'P'){
-        // Parent's Own Announcements
         $parentAnnouncements = Ann::where('user_id', $userId);
 
         $driverAnnouncements = Ann::whereHas('user', function ($subQuery) {
-                                    $subQuery->where('role', 'D');
-                                });
-    
+            $subQuery->where('role', 'D');
+        });
+
+        // SOS messages from this parent's assigned driver(s)
+        $parent     = User::with('parent.children')->find($userId)?->parent;
+        $driverIds  = $parent ? $parent->children->pluck('driver_id')->filter()->unique() : collect();
+        $sosMessages = SosMessage::with('driver.user')
+            ->whereIn('driver_id', $driverIds)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($parent) {
+            // Payments due within 7 days (issued 23–30 days ago, still Pending)
+            $nearDuePayments = Payment::with('child')
+                ->where('parent_id', $parent->id)
+                ->where('pay_status', 'Pending')
+                ->where('issue_date', '<=', Carbon::now()->subDays(23))
+                ->where('issue_date', '>=', Carbon::now()->subDays(30))
+                ->get();
+
+            // All currently overdue payments
+            $overduePayments = Payment::with('child')
+                ->where('parent_id', $parent->id)
+                ->where('pay_status', 'Overdue')
+                ->get();
+        }
     }
     elseif($userRole === 'D')
     {
-        // Parent's Own Announcements
         $driverAnnouncements = Ann::where('user_id', $userId);
 
-        // Parent's Own Announcements
         $parentAnnouncements = Ann::whereHas('user', function ($subQuery) {
             $subQuery->where('role', 'P');
         });
@@ -61,7 +100,11 @@ class AnnController extends Controller
     return view('ann.index', [
         'parentAnnouncements' => $parentAnnouncements->get(),
         'driverAnnouncements' => $driverAnnouncements->get(),
-        'userName' => $userName,
+        'userName'            => $userName,
+        'userRole'            => $userRole,
+        'sosMessages'         => $sosMessages,
+        'nearDuePayments'     => $nearDuePayments,
+        'overduePayments'     => $overduePayments,
     ]);
 }
 
@@ -81,7 +124,6 @@ class AnnController extends Controller
     {
         $userId = Session::get('user_id');
         $userRole = Session::get('user_role');
-        $userName = Session::get('user_name');
 
         // Redirect to login if user is not authenticated
         if (!$userId) {
@@ -201,7 +243,7 @@ class AnnController extends Controller
         try {
             $announcement->delete();
             
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return redirect()->route('ann')->withErrors(['error' => 'Deletion failed']);
         }
     

@@ -16,6 +16,12 @@ Homestead.yaml
 auth.json
 npm-debug.log
 yarn-error.log
+/public/sos-audio/*
+/public/salary-receipts/*
+/public/proofs/*
+!/public/sos-audio/.gitkeep
+!/public/salary-receipts/.gitkeep
+!/public/proofs/.gitkeep
 /.fleet
 /.idea
 /.vscode

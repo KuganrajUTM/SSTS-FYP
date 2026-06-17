@@ -12,6 +12,8 @@ class Child extends Model
     protected $fillable = [
         'name',
         'school_name',
+        'city',
+        'district',
         'parent_id',
         'driver_id',
     ];

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Parents extends Model
 {
@@ -12,7 +11,10 @@ class Parents extends Model
 
     protected $fillable = [
         'location',
-        'user_id'
+        'phone',
+        'city',
+        'district',
+        'user_id',
     ];
 
 

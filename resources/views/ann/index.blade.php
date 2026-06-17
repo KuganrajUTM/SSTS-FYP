@@ -1,41 +1,240 @@
 @extends('layout.main-template')
 
 @section('content')
-<div class="container mt-5">
-    <!-- Page Title -->
-    <h2 class="text-justify mb-4">Announcements</h2>
-    
-    <!-- Add Announcement Button -->
-    <div class="mb-3 text-end">
-        <a href="{{ route('ann.create') }}" class="btn btn-primary">Add Announcement</a>
+<style>
+    /* Theme Variables matching your reference */
+    :root {
+      --emerald:    #00b894;
+      --emerald-dk: #007a63;
+      --emerald-lt: #e6f9f5;
+      --navy:       #0a1628;
+      --slate:      #4a5568;
+      --white:      #ffffff;
+      --bg:         #f5f7fa;
+      --border:     rgba(0,184,148,0.25);
+    }
+
+    .ann-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        color: var(--navy);
+        margin-top: 2rem;
+    }
+
+    /* Customizing the Cards */
+    .card {
+        border: 1.5px solid var(--border);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,184,148,0.05);
+        background: var(--white);
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        background-color: var(--emerald-lt) !important;
+        border-bottom: 1.5px solid var(--border);
+        color: var(--emerald-dk);
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        padding: 1rem 1.25rem;
+    }
+
+    /* Table Styling */
+    .table thead {
+        background-color: var(--navy);
+        color: var(--white);
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 184, 148, 0.02);
+    }
+
+    /* Button Customization */
+    .btn-primary {
+        background: linear-gradient(135deg, var(--emerald) 0%, var(--emerald-dk) 100%);
+        border: none;
+        font-family: 'Syne', sans-serif;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0,184,148,0.2);
+    }
+
+    .btn-primary:hover {
+        background: var(--emerald-dk);
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background-color: var(--slate);
+        border: none;
+    }
+
+    /* Filter inputs styling */
+    .form-select-sm, .form-control-sm {
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+    }
+
+    .form-select-sm:focus, .form-control-sm:focus {
+        border-color: var(--emerald);
+        box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.1);
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="ann-title">Announcements</h2>
+        <a href="{{ route('ann.create') }}" class="btn btn-primary px-4 py-2">
+            <i class="fas fa-plus-circle me-1"></i> Add Announcement
+        </a>
     </div>
 
     @if($userRole == 'P')
-    <!-- Parent Announcements Table -->
-    <div class="card mb-4">
+
+    {{-- Near-Due Payment Alerts --}}
+    @if($nearDuePayments->count() > 0)
+    <div class="card mb-3" style="border-color:#f39c12;">
+        <div class="card-header" style="background:#fff9e6 !important; border-bottom-color:#f39c12; color:#856404; font-family:'Syne',sans-serif; font-weight:700; padding:1rem 1.25rem;">
+            <i class="fas fa-clock me-2"></i> Payment Due Soon
+        </div>
+        <div class="card-body pb-2">
+            @foreach($nearDuePayments as $pay)
+            <div class="d-flex align-items-start gap-3 p-3 mb-2" style="background:#fff9e6; border:1.5px solid rgba(243,156,18,0.4); border-radius:10px;">
+                <i class="fas fa-exclamation-triangle mt-1" style="color:#f39c12; font-size:1.1rem;"></i>
+                <div>
+                    Payment for <strong>{{ $pay->child->name }}</strong> of
+                    <strong>RM {{ number_format($pay->pay_amount, 2) }}</strong> is due on
+                    <strong>{{ $pay->issue_date->addDays(30)->format('d M Y') }}</strong>.
+                    Please make payment before the due date to avoid overdue penalties.
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- Overdue Payment Alerts --}}
+    @if($overduePayments->count() > 0)
+    <div class="card mb-3" style="border-color:#e74c3c;">
+        <div class="card-header" style="background:#fff3f3 !important; border-bottom-color:#e74c3c; color:#c0392b; font-family:'Syne',sans-serif; font-weight:700; padding:1rem 1.25rem;">
+            <i class="fas fa-exclamation-circle me-2"></i> Overdue Payment Warning
+        </div>
+        <div class="card-body pb-2">
+            @foreach($overduePayments as $pay)
+            <div class="d-flex align-items-start gap-3 p-3 mb-2" style="background:#fff3f3; border:1.5px solid rgba(231,76,60,0.35); border-radius:10px;">
+                <i class="fas fa-ban mt-1" style="color:#e74c3c; font-size:1.1rem;"></i>
+                <div>
+                    <strong>Overdue — {{ $pay->child->name }} (RM {{ number_format($pay->pay_amount, 2) }}).</strong>
+                    Please do the payment immediately. If payment is not settled within 10 days of the due date,
+                    a <strong>2% increment</strong> will be added to the payment amount as a penalty.
+                    @if($pay->penalty_applied)
+                    <br><span style="color:#c0392b; font-weight:700;">
+                        <i class="fas fa-percent me-1"></i>2% penalty has already been applied. Updated amount: RM {{ number_format($pay->pay_amount, 2) }}
+                    </span>
+                    @endif
+                    <div class="mt-2">
+                        <a href="{{ route('payment.checkout', $pay->id) }}" class="btn btn-sm btn-danger">
+                            <i class="fas fa-credit-card me-1"></i> Pay Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- SOS Emergency Alerts --}}
+    @if(isset($sosMessages) && $sosMessages->count() > 0)
+    <div class="card" style="border-color:#e17055;">
+        <div class="card-header" style="background:#fff3f3 !important; border-bottom-color:#e17055; color:#c0392b;">
+            <span><i class="fas fa-exclamation-triangle me-2"></i> Emergency Alerts from Your Driver</span>
+        </div>
+        <div class="card-body p-3">
+            @foreach($sosMessages as $sos)
+            <div id="sos-card-{{ $sos->id }}" style="background:#fff; border:1.5px solid rgba(225,112,85,0.3); border-radius:12px; padding:1rem 1.1rem; margin-bottom:0.75rem; transition:opacity 0.3s ease;">
+                <div style="font-weight:700; color:#e17055; font-size:0.88rem; margin-bottom:0.6rem;">
+                    <i class="fas fa-user-circle me-1"></i> {{ $sos->driver->user->name }}
+                    <span style="font-weight:400; color:#b2bec3; margin-left:0.5rem;">{{ $sos->created_at->format('d M Y, h:i A') }}</span>
+                </div>
+                <audio id="sos-audio-{{ $sos->id }}" controls style="width:100%; margin-bottom:0.5rem; border-radius:8px;" onended="showSosDelete({{ $sos->id }})">
+                    <source src="{{ asset('sos-audio/' . $sos->audio_path) }}">
+                    Your browser does not support audio playback.
+                </audio>
+                @if($sos->transcript)
+                <div style="background:#fff3f3; border-left:3px solid #e17055; border-radius:6px; padding:0.5rem 0.75rem; font-size:0.88rem; color:#2d3436; margin-bottom:0.5rem;">
+                    <i class="fas fa-comment-alt me-1" style="color:#e17055;"></i> {{ $sos->transcript }}
+                </div>
+                @endif
+                <div id="sos-delete-{{ $sos->id }}" style="display:none; margin-top:0.5rem;">
+                    <button onclick="deleteSosMessage({{ $sos->id }})" style="background:#e17055; color:#fff; border:none; border-radius:8px; padding:0.35rem 1rem; font-size:0.83rem; font-weight:600; cursor:pointer; box-shadow:0 2px 8px rgba(225,112,85,0.3);">
+                        <i class="fas fa-trash me-1"></i> Delete Message
+                    </button>
+                    <span style="font-size:0.78rem; color:#b2bec3; margin-left:0.6rem;">Auto-deletes after 24 hours</span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <script>
+    function showSosDelete(id) {
+        const btn = document.getElementById('sos-delete-' + id);
+        if (btn) {
+            btn.style.display = 'block';
+            btn.style.opacity = '0';
+            requestAnimationFrame(function() {
+                btn.style.transition = 'opacity 0.35s ease';
+                btn.style.opacity = '1';
+            });
+        }
+    }
+
+    function deleteSosMessage(id) {
+        if (!confirm('Delete this SOS message?')) return;
+        fetch('/sos/' + id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ _method: 'DELETE' })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.status === 'ok') {
+                const card = document.getElementById('sos-card-' + id);
+                card.style.opacity = '0';
+                setTimeout(function() { card.remove(); }, 300);
+            } else {
+                alert('Could not delete. Please try again.');
+            }
+        })
+        .catch(function() { alert('Network error. Please try again.'); });
+    }
+    </script>
+
+    <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <strong>Your Announcements</strong>
+            <span><i class="fas fa-bullhorn me-2"></i>Your Announcements</span>
             
-            <!-- Filter Form -->
             <form method="GET" action="{{ route('ann') }}" class="d-flex align-items-center">
                 <div class="me-2">
-                    <select name="filter_option" class="form-select form-select-sm" id="filter_option">
+                    <select name="filter_option" class="form-select form-select-sm">
                         <option value="">View all</option>
                         <option value="absence" {{ request('filter_option') == 'absence' ? 'selected' : '' }}>Absence</option>
                         <option value="delay" {{ request('filter_option') == 'delay' ? 'selected' : '' }}>Delay</option>
                     </select>
                 </div>
                 <div class="me-2">
-                    <input type="date" name="date" class="form-control form-control-sm" placeholder="Filter by Date" value="{{ request('date') }}" id="date">
+                    <input type="date" name="date" class="form-control form-control-sm" value="{{ request('date') }}">
                 </div>
                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                 <a href="{{ route('ann') }}" class="btn btn-secondary btn-sm ms-2">Reset</a>
             </form>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-striped" style="table-layout: fixed;">
-                    <thead class="table-light">
+                <table class="table table-hover mb-0" style="table-layout: fixed;">
+                    <thead>
                         <tr>
                             <th style="width: 5%;">No.</th>
                             <th style="width: 20%;">Title</th>
@@ -47,22 +246,22 @@
                     <tbody>
                         @forelse($parentAnnouncements as $index => $announcement)
                             <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $announcement->title }}</td>
+                                <td class="ps-3">{{ $index + 1 }}</td>
+                                <td class="fw-bold">{{ $announcement->title }}</td>
                                 <td>{!! $announcement->content !!}</td>
-                                <td>{{ $announcement->created_at }}</td>
+                                <td>{{ $announcement->created_at->format('d M Y') }}</td>
                                 <td>
-                                    <a href="{{ route('ann.edit', $announcement->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="{{ route('ann.edit', $announcement->id) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
                                     <form action="{{ route('ann.destroy', $announcement->id) }}" method="POST" style="display: inline;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this announcement?')">Delete</button>
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center">No announcements available.</td>
+                                <td colspan="5" class="text-center py-4">No announcements available.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -71,15 +270,14 @@
         </div>
     </div>
 
-    <!-- Driver Announcements Table -->
     <div class="card">
         <div class="card-header">
-            <strong>Driver Announcements</strong>
+            <span><i class="fas fa-bus me-2"></i>Driver Announcements</span>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-striped" style="table-layout: fixed;">
-                    <thead class="table-light">
+                <table class="table table-hover mb-0" style="table-layout: fixed;">
+                    <thead>
                         <tr>
                             <th style="width: 5%;">No.</th>
                             <th style="width: 25%;">Title</th>
@@ -90,14 +288,14 @@
                     <tbody>
                         @forelse($driverAnnouncements as $index => $announcement)
                             <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $announcement->title }}</td>
+                                <td class="ps-3">{{ $index + 1 }}</td>
+                                <td class="fw-bold text-success">{{ $announcement->title }}</td>
                                 <td>{!! $announcement->content !!}</td>
-                                <td>{{ $announcement->created_at }}</td>
+                                <td>{{ $announcement->created_at->format('d M Y') }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center">No announcements available.</td>
+                                <td colspan="4" class="text-center py-4">No announcements available.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -105,40 +303,32 @@
             </div>
         </div>
     </div>
-</div>
 
     @elseif($userRole == 'D')
     
-    <!-- Driver's Own Announcements Table -->
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <strong>Your Announcements</strong>
+            <span><i class="fas fa-user-circle me-2"></i>Your Driver Updates</span>
             
-            <!-- Filter Form -->
             <form method="GET" action="{{ route('ann') }}" class="d-flex align-items-center">
                 <div class="me-2">
-                    <select name="filter_option" class="form-select form-select-sm" id="filter_option">
+                    <select name="filter_option" class="form-select form-select-sm">
                         <option value="">View all</option>
                         <option value="absence" {{ request('filter_option') == 'absence' ? 'selected' : '' }}>Absence</option>
                         <option value="delay" {{ request('filter_option') == 'delay' ? 'selected' : '' }}>Delay</option>
                     </select>
                 </div>
                 <div class="me-2">
-                    <input type="date" name="date" class="form-control form-control-sm" placeholder="Filter by Date" value="{{ request('date') }}" id="date">
+                    <input type="date" name="date" class="form-control form-control-sm" value="{{ request('date') }}">
                 </div>
                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
                 <a href="{{ route('ann') }}" class="btn btn-secondary btn-sm ms-2">Reset</a>
             </form>
         </div>
-        <div class="card-body">
-            <!-- Add Announcement Button -->
-            <div class="mb-3 text-end">
-                <a href="{{ route('ann.create') }}" class="btn btn-primary">Add Announcement</a>
-            </div>
-            
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-striped" style="table-layout: fixed;">
-                    <thead class="table-light">
+                <table class="table table-hover mb-0" style="table-layout: fixed;">
+                    <thead>
                         <tr>
                             <th style="width: 5%;">No.</th>
                             <th style="width: 20%;">Title</th>
@@ -150,22 +340,22 @@
                     <tbody>
                         @forelse($driverAnnouncements as $index => $announcement)
                             <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $announcement->title }}</td>
+                                <td class="ps-3">{{ $index + 1 }}</td>
+                                <td class="fw-bold">{{ $announcement->title }}</td>
                                 <td>{!! $announcement->content !!}</td>
-                                <td>{{ $announcement->created_at }}</td>
+                                <td>{{ $announcement->created_at->format('d M Y') }}</td>
                                 <td>
-                                    <a href="{{ route('ann.edit', $announcement->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="{{ route('ann.edit', $announcement->id) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
                                     <form action="{{ route('ann.destroy', $announcement->id) }}" method="POST" style="display: inline;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this announcement?')">Delete</button>
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center">No announcements available.</td>
+                                <td colspan="5" class="text-center py-4">No announcements available.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -174,15 +364,14 @@
         </div>
     </div>
 
-    <!-- Parent Announcements Table -->
     <div class="card">
         <div class="card-header">
-            <strong>Parent Announcements</strong>
+            <span><i class="fas fa-users me-2"></i>Parent Updates</span>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-bordered table-striped" style="table-layout: fixed;">
-                    <thead class="table-light">
+                <table class="table table-hover mb-0" style="table-layout: fixed;">
+                    <thead>
                         <tr>
                             <th style="width: 7%;">No.</th>
                             <th style="width: 20%;">Parent Name</th>
@@ -194,15 +383,15 @@
                     <tbody>
                         @forelse($parentAnnouncements as $index => $announcement)
                             <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>{{ $announcement->user->name }}</td>
+                                <td class="ps-3">{{ $index + 1 }}</td>
+                                <td class="fw-bold text-primary">{{ $announcement->user->name }}</td>
                                 <td>{{ $announcement->title }}</td>
                                 <td>{!! $announcement->content !!}</td>
-                                <td>{{ $announcement->created_at }}</td>
+                                <td>{{ $announcement->created_at->format('d M Y') }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center">No announcements available.</td>
+                                <td colspan="5" class="text-center py-4">No announcements available.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -210,7 +399,6 @@
             </div>
         </div>
     </div>
-@endif
-
-
+    @endif
+</div>
 @endsection

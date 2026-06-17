@@ -16,12 +16,21 @@ class Driver extends Model
     protected $fillable = [
         'VRN',
         'ver_status',
-        'user_id'
+        'user_id',
+        'city',
+        'district',
+        'bank_name',
+        'bank_account_number',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class,'user_id');
+    }
+
+    public function verification()
+    {
+        return $this->hasOne(Verification::class, 'driver_id');
     }
 
     public function payment(): HasMany

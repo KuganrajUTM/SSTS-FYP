@@ -10,6 +10,7 @@ use Illuminate\Validation\Rules\Password;
 use App\Models\User;
 use App\Models\Driver;
 use App\Models\Verification;
+use App\Models\DriverKey;
 
 class AuthController extends Controller
 {
@@ -20,7 +21,9 @@ class AuthController extends Controller
             'username' => ['required', 'max:255'],
             'email' => ['required', 'max:255', 'email', 'unique:users'],
             'password' => ['required', 'string', 'confirmed', Password::default()],
-            'location' => ['required']
+            'location' => ['required'],
+            'city'     => ['required', 'string', 'max:100'],
+            'district' => ['required', 'string', 'max:100'],
         ]);
 
         $user = User::create([
@@ -32,10 +35,22 @@ class AuthController extends Controller
         ]);
 
         $user->parent()->create([
-            'location' => $request->input('location')
+            'location' => $request->input('location'),
+            'city'     => $request->input('city'),
+            'district' => $request->input('district'),
         ]);
 
         return redirect()->route('login')->with('success', 'Account created successfully!');
+    }
+
+    public function showDriverRegister()
+    {
+        if (!session('driver_key_id')) {
+            return redirect()->route('register')
+                ->with('error', 'A valid Driver Key is required to access driver registration.');
+        }
+
+        return view('driver-register');
     }
 
     public function user_login(Request $request){
@@ -46,21 +61,30 @@ class AuthController extends Controller
 
         if (Auth::attempt($field)) {
             $user = Auth::user();
-            // Save only necessary information in session
-            $driver_verification = Driver::where('user_id', $user->id)
-                                     ->where('ver_status', 'Approved')
-                                     ->first();
             
-            if(!$driver_verification && $user->role==='D')
-            {
-                return back()->withErrors(['failed' => 'Your Verification Still Pending']);
+            // Check verification table, not driver table
+            if($user->role === 'D') {
+                $driver = Driver::where('user_id', $user->id)->first();
+                if (!$driver || !$driver->verification || $driver->verification->ver_status !== 'Approved') {
+                    Auth::logout(); // Important: logout unauthorized drivers
+                    return back()->withErrors(['failed' => 'Your Verification Still Pending']);
+                }
             }
-            Session::put('user_id', $user->id); // Save user ID
-            Session::put('user_role', $user->role); // Save user role
-            Session::put('user_name', $user->name); // Save user name
+            
+            Session::put('user_id', $user->id);
+            Session::put('user_role', $user->role);
+            Session::put('user_name', $user->name);
 
-            return redirect()->route('main')->with('success', 'Login successful!');
-        }else{
+            if ($user->role === 'A') {
+                return redirect()->route('admin.users'); // Admin dashboard
+            } elseif ($user->role === 'P') {
+                return redirect()->route('main'); // Parent dashboard (welcome screen)
+            } elseif ($user->role === 'D') {
+                return redirect()->route('main'); // Driver dashboard (welcome screen)
+            }
+
+            
+        } else {
             return back()->withErrors([
                 'failed' => 'Incorrect email or password'
             ]);
@@ -71,14 +95,15 @@ class AuthController extends Controller
     {
 
         $request->validate([
-            'fullname' => ['required', 'max:255'],
-            'username' => ['required', 'max:255'],
-            'email' => ['required', 'max:255', 'email', 'unique:users'],
-            'password' => ['required', 'min:8', 'confirmed'],
-            'vrn' => ['required'],
-            'spad' => ['required', 'mimetypes:application/pdf', 'max:2048'],
-            'license' => ['required', 'mimetypes:application/pdf', 'max:2048']
-            
+            'fullname'            => ['required', 'max:255'],
+            'username'            => ['required', 'max:255'],
+            'email'               => ['required', 'max:255', 'email', 'unique:users'],
+            'password'            => ['required', 'min:8', 'confirmed'],
+            'vrn'                 => ['required'],
+            'bank_name'           => ['required', 'string', 'max:100'],
+            'bank_account_number' => ['required', 'string', 'max:50'],
+            'spad'                => ['required', 'mimetypes:application/pdf', 'max:2048'],
+            'license'             => ['required', 'mimetypes:application/pdf', 'max:2048'],
         ]);
     
         // Read and encode the file contents
@@ -100,8 +125,10 @@ class AuthController extends Controller
     
         // Create the driver
         $driver = $user->driver()->create([
-            'VRN' => $request->input('vrn'),
-            'ver_status' => 'Pending',
+            'VRN'                 => $request->input('vrn'),
+            'ver_status'          => 'Pending',
+            'bank_name'           => $request->input('bank_name'),
+            'bank_account_number' => $request->input('bank_account_number'),
         ]);
     
         if (!$driver) {
@@ -126,7 +153,15 @@ class AuthController extends Controller
             'rej_reason' => 'N/A',
         ]);
 
+        // Consume the driver key (mark as used, one-time only)
+        if (session('driver_key_id')) {
+            DriverKey::where('id', session('driver_key_id'))
+                ->where('used', false)
+                ->update(['used' => true, 'used_at' => now()]);
+            session()->forget('driver_key_id');
+        }
+
         return redirect()->route('login')->with('success', 'Account created successfully!');
     }
-    
+
 }

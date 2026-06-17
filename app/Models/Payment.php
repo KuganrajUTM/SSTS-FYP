@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
@@ -17,13 +16,15 @@ class Payment extends Model
         'pay_status',
         'pay_amount',
         'issue_date',
+        'penalty_applied',
         'payment_intent_id',
         'stripe_payment_id'
     ];
 
     protected $casts = [
-        'issue_date' => 'date',
-        'pay_date' => 'date',
+        'issue_date'      => 'date',
+        'pay_date'        => 'date',
+        'penalty_applied' => 'boolean',
     ];
 
     public function driver(){

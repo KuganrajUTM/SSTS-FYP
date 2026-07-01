@@ -118,16 +118,6 @@
       background: rgba(0,184,148,0.1);
     }
 
-    .navbar-collapse {
-      display: flex !important;
-      flex-basis: auto !important;
-    }
-    .navbar-nav {
-      flex-direction: row !important;
-    }
-    .navbar-toggler {
-      display: none !important;
-    }
 
     /* ── HERO ────────────────────────────────────── */
     .hero {
@@ -698,23 +688,18 @@
 <body>
 
 <!-- ── NAVBAR ──────────────────────────────────────── -->
-<nav class="navbar navbar-expand-md">
-  <div class="container">
+<nav class="navbar">
+  <div class="container d-flex align-items-center justify-content-between">
     <a class="navbar-brand d-flex align-items-center gap-2" href="#">
       <img src="assets/img/photo_2024-10-22_11-35-22-Photoroom.png" alt="SSTS Logo">
       <span class="brand-name">SS<span>TS</span></span>
     </a>
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto align-items-lg-center">
-        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
-        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-        <li class="nav-item"><a class="nav-link" href="#faq">FAQ</a></li>
-      </ul>
-      <div class="dropdown ms-3">
+    <div class="d-flex align-items-center gap-2">
+      <a class="nav-link" href="#">Home</a>
+      <a class="nav-link" href="#features">Features</a>
+      <a class="nav-link" href="#about">About</a>
+      <a class="nav-link" href="#faq">FAQ</a>
+      <div class="dropdown ms-2">
         <button class="btn-register dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
           Register
         </button>

@@ -687,7 +687,7 @@
 <body>
 
 <!-- ── NAVBAR ──────────────────────────────────────── -->
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-md">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center gap-2" href="#">
       <img src="assets/img/photo_2024-10-22_11-35-22-Photoroom.png" alt="SSTS Logo">

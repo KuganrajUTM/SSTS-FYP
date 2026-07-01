@@ -42,28 +42,3 @@
     </ul>
 </nav>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var dropdownElement = document.getElementById('userDropdown');
-        if (dropdownElement) {
-            dropdownElement.addEventListener('click', function (e) {
-                e.preventDefault();
-                var menu = this.nextElementSibling;
-                // Check if Bootstrap's JS is working, if not, manually toggle
-                if (!menu.classList.contains('show')) {
-                    menu.classList.add('show');
-                    menu.setAttribute('data-bs-popper', 'static');
-                } else {
-                    menu.classList.remove('show');
-                }
-            });
-
-            // Close when clicking outside
-            document.addEventListener('click', function (e) {
-                if (!dropdownElement.contains(e.target)) {
-                    dropdownElement.nextElementSibling.classList.remove('show');
-                }
-            });
-        }
-    });
-</script>

@@ -125,6 +125,9 @@
                     <strong>Overdue — Ahmad Danial (RM 150.00).</strong>
                     Please do the payment immediately. If payment is not settled within 10 days of the due date,
                     a <strong>2% increment</strong> will be added to the payment amount as a penalty.
+                    <br><span style="color:#c0392b; font-weight:700;">
+                        <i class="fas fa-percent me-1"></i>2% penalty has already been applied. Updated amount: RM 153.00
+                    </span>
                     <div class="mt-2">
                         <a href="#" class="btn btn-sm btn-danger">
                             <i class="fas fa-credit-card me-1"></i> Pay Now

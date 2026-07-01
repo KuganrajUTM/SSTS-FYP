@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Ann;
 use App\Models\User;
 use App\Models\Payment;
-use App\Models\SosMessage;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -27,19 +26,6 @@ class AnnController extends Controller
         return redirect()->route('login')->withErrors(['error' => 'User not logged in']);
     }
 
-    $sosMessages = collect();
-
-    // Auto-delete SOS messages older than 24 hours (runs on every page load)
-    if ($userRole === 'P') {
-        SosMessage::where('created_at', '<', now()->subHours(24))->get()->each(function ($sos) {
-            $filePath = public_path('sos-audio/' . $sos->audio_path);
-            if (file_exists($filePath)) {
-                @unlink($filePath);
-            }
-            $sos->delete();
-        });
-    }
-
     $nearDuePayments = collect();
     $overduePayments = collect();
 
@@ -50,13 +36,7 @@ class AnnController extends Controller
             $subQuery->where('role', 'D');
         });
 
-        // SOS messages from this parent's assigned driver(s)
-        $parent     = User::with('parent.children')->find($userId)?->parent;
-        $driverIds  = $parent ? $parent->children->pluck('driver_id')->filter()->unique() : collect();
-        $sosMessages = SosMessage::with('driver.user')
-            ->whereIn('driver_id', $driverIds)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $parent = User::with('parent.children')->find($userId)?->parent;
 
         if ($parent) {
             // Payments due within 7 days (issued 23–30 days ago, still Pending)
@@ -102,7 +82,6 @@ class AnnController extends Controller
         'driverAnnouncements' => $driverAnnouncements->get(),
         'userName'            => $userName,
         'userRole'            => $userRole,
-        'sosMessages'         => $sosMessages,
         'nearDuePayments'     => $nearDuePayments,
         'overduePayments'     => $overduePayments,
     ]);

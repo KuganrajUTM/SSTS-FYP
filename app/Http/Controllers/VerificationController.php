@@ -5,13 +5,21 @@ use App\Models\Verification;
 use App\Models\Driver;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class VerificationController extends Controller
 {
     public function index()
     {
-        $drivers = Driver::with(['user', 'verification'])->get();
+        $status = request('status');
+        $query = Driver::with(['user', 'verification']);
+
+        if ($status) {
+            $query->whereHas('verification', function ($q) use ($status) {
+                $q->where('ver_status', $status);
+            });
+        }
+
+        $drivers = $query->get();
         return view('verification.driver', compact('drivers'));
     }
 

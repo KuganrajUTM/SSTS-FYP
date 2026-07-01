@@ -195,7 +195,7 @@ Route::delete('/profile/remove', [ProfileController::class, 'removeAccount'])->n
 
 Route::get('/schedule/{driver_id}/{child_id}', [ScheduleController::class, 'viewSchedule'])->name('schedule');
 
-Route::post('/assign-driver/{child_id}/{driver_id}', [DriverController::class, 'addDriverToChild'])->name('assign.driver');
+Route::post('/assign-driver/{child_id}/{driver_id}', [DriverController::class, 'addDriverToChild'])->name('assign.driver.post');
 
 Route::get('/admin/payments', [AdminController::class, 'paymentRecords'])->name('admin.payments');
 Route::delete('/admin/child/{id}/unassign', [AdminController::class, 'unassignChild'])->name('admin.child.unassign');

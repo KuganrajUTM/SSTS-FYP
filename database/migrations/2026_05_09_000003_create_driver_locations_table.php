@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('lng', 10, 7);
             $table->timestamp('timestamp')->nullable();
 
-            $table->foreign('driver_id')->references('id')->on('drivers')->onDelete('cascade');
+            $table->foreign('driver_id')->references('id')->on('driver')->onDelete('cascade');
         });
     }
 

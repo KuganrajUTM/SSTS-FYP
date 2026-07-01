@@ -215,15 +215,12 @@
                         </td>
                         <td style="text-align:center;">
                             @if ($pay->pay_status !== 'Paid')
-                                <select class="form-select form-select-sm d-inline-block mb-1" style="width:120px;"
+                                <select class="form-select form-select-sm d-inline-block" style="width:120px;"
                                         onchange="openConfirmationModal('{{ $pay->id }}', this.value)">
                                     <option value="{{ $pay->pay_status }}" selected>{{ $pay->pay_status }}</option>
                                     <option value="Paid">Paid (Cash)</option>
                                 </select>
                             @endif
-                            <a href="{{ route('view_pay', $pay->id) }}" class="btn btn-sm btn-primary">
-                                <i class="fa-solid fa-eye"></i>
-                            </a>
                         </td>
                     </tr>
                     @endforeach

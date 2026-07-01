@@ -113,6 +113,29 @@
     </div>
     @endif
 
+    {{-- DEMO: hardcoded overdue block - remove after screenshot --}}
+    <div class="card mb-3" style="border-color:#e74c3c;">
+        <div class="card-header" style="background:#fff3f3 !important; border-bottom-color:#e74c3c; color:#c0392b; font-family:'Syne',sans-serif; font-weight:700; padding:1rem 1.25rem;">
+            <i class="fas fa-exclamation-circle me-2"></i> Overdue Payment Warning
+        </div>
+        <div class="card-body pb-2">
+            <div class="d-flex align-items-start gap-3 p-3 mb-2" style="background:#fff3f3; border:1.5px solid rgba(231,76,60,0.35); border-radius:10px;">
+                <i class="fas fa-ban mt-1" style="color:#e74c3c; font-size:1.1rem;"></i>
+                <div>
+                    <strong>Overdue — Ahmad Danial (RM 150.00).</strong>
+                    Please do the payment immediately. If payment is not settled within 10 days of the due date,
+                    a <strong>2% increment</strong> will be added to the payment amount as a penalty.
+                    <div class="mt-2">
+                        <a href="#" class="btn btn-sm btn-danger">
+                            <i class="fas fa-credit-card me-1"></i> Pay Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- END DEMO --}}
+
     {{-- Overdue Payment Alerts --}}
     @if($overduePayments->count() > 0)
     <div class="card mb-3" style="border-color:#e74c3c;">

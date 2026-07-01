@@ -748,7 +748,7 @@
             </a>
           </li>
           <li>
-            <a class="dropdown-item" href="#" id="driverRegisterBtn">
+            <a class="dropdown-item" href="javascript:void(0)" id="driverRegisterBtn" onclick="openDriverKeyModal()">
               <i class="bi bi-person-badge me-2"></i> Driver
             </a>
           </li>
@@ -1062,18 +1062,20 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   // Hamburger toggle
-  document.getElementById('navToggle').addEventListener('click', function() {
-    document.getElementById('navLinks').classList.toggle('open');
-  });
+  var navToggleBtn = document.getElementById('navToggle');
+  if (navToggleBtn) {
+    navToggleBtn.addEventListener('click', function() {
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  }
 
-  document.getElementById('driverRegisterBtn').addEventListener('click', function(e) {
-    e.preventDefault();
+  function openDriverKeyModal() {
     document.getElementById('driverKeyInput').value = '';
     document.getElementById('keyError').style.display = 'none';
     showEnterKeyTab();
     new bootstrap.Modal(document.getElementById('driverKeyModal')).show();
     setTimeout(() => document.getElementById('driverKeyInput').focus(), 400);
-  });
+  }
 
   function showEnterKeyTab() {
     document.getElementById('tabEnterKey').style.display = '';

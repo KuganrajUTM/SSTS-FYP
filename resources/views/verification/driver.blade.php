@@ -114,7 +114,11 @@
                             @else
                                 <span class="text-muted small">Not set</span>
                             @endif
-                            <button class="btn btn-outline-secondary btn-sm mt-1" onclick="openExpiryModal({{ $driver->id }}, '{{ $expiry ?? '' }}')" title="Edit expiry date">
+                            <button class="btn btn-outline-secondary btn-sm mt-1"
+                                data-bs-toggle="modal"
+                                data-bs-target="#expiryModal"
+                                onclick="setExpiryForm({{ $driver->id }}, '{{ $expiry ?? '' }}')"
+                                title="Edit expiry date">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </td>
@@ -227,10 +231,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-function openExpiryModal(driverId, currentExpiry) {
+function setExpiryForm(driverId, currentExpiry) {
     document.getElementById('expiryForm').action = '/verification/license-expiry/' + driverId;
     document.getElementById('expiryDateInput').value = currentExpiry;
-    new bootstrap.Modal(document.getElementById('expiryModal')).show();
 }
 
 function confirmStatusChange(driverId) {

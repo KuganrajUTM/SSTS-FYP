@@ -1116,6 +1116,7 @@
 
     fetch('{{ route("driver-key.validate") }}', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -1164,6 +1165,7 @@
 
     fetch('{{ route("driver-key.request") }}', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content

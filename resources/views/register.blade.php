@@ -549,14 +549,14 @@
 
     <div class="bottom-links">
       <span><a href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Go to Login</a></span>
-      <span>Registering as a driver? <a href="#" id="driverRegisterBtn">Register here</a></span>
+      <span>Registering as a driver? <a href="{{ route('home') }}">Go to homepage</a></span>
     </div>
 
   </div>
 </div>
 
-{{-- Driver Key Modal --}}
-<div class="modal fade" id="driverKeyModal" tabindex="-1" aria-hidden="true">
+{{-- Driver Key Modal removed from parent page --}}
+{{-- <div class="modal fade" id="driverKeyModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border-radius:16px; overflow:hidden; border:1.5px solid rgba(0,184,148,0.25);">
       <div class="modal-header" style="background:#e6f9f5; border-bottom:1.5px solid rgba(0,184,148,0.25);">
@@ -642,140 +642,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  document.getElementById('driverRegisterBtn').addEventListener('click', function(e) {
-    e.preventDefault();
-    document.getElementById('driverKeyInput').value = '';
-    document.getElementById('keyError').style.display = 'none';
-    showEnterKeyTab();
-    new bootstrap.Modal(document.getElementById('driverKeyModal')).show();
-    setTimeout(() => document.getElementById('driverKeyInput').focus(), 400);
-  });
-
-  function showEnterKeyTab() {
-    document.getElementById('tabEnterKey').style.display = '';
-    document.getElementById('tabRequestKey').style.display = 'none';
-    document.getElementById('verifyKeyBtn').style.display = '';
-    document.getElementById('submitReqBtn').style.display = 'none';
-    document.getElementById('dkModalTitle').innerHTML = '<i class="bi bi-key me-2" style="color:#00b894;"></i> Driver Registration Key';
-  }
-
-  function showRequestTab() {
-    document.getElementById('tabEnterKey').style.display = 'none';
-    document.getElementById('tabRequestKey').style.display = '';
-    document.getElementById('verifyKeyBtn').style.display = 'none';
-    document.getElementById('submitReqBtn').style.display = '';
-    document.getElementById('reqError').style.display = 'none';
-    document.getElementById('reqSuccess').style.display = 'none';
-    document.getElementById('dkModalTitle').innerHTML = '<i class="bi bi-envelope me-2" style="color:#f39c12;"></i> Request a Driver Key';
-  }
-
-  function clearKeyError() {
-    document.getElementById('keyError').style.display = 'none';
-    document.getElementById('driverKeyInput').style.borderColor = '#dde3ea';
-  }
-
-  function verifyDriverKey() {
-    const input  = document.getElementById('driverKeyInput');
-    const errEl  = document.getElementById('keyError');
-    const btn    = document.getElementById('verifyKeyBtn');
-    const code   = input.value.trim();
-
-    if (code.length !== 6) {
-      errEl.textContent = 'Please enter the full 6-digit key.';
-      errEl.style.display = 'block';
-      input.style.borderColor = '#e74c3c';
-      return;
-    }
-
-    btn.textContent = 'Verifying…';
-    btn.disabled = true;
-
-    fetch('{{ route("driver-key.validate") }}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ key_code: code })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.valid) {
-        window.location.href = '{{ route("driver-register-page") }}';
-      } else {
-        errEl.textContent = data.message || 'Invalid key. Please contact the manager.';
-        errEl.style.display = 'block';
-        input.style.borderColor = '#e74c3c';
-        btn.textContent = 'Verify Key';
-        btn.disabled = false;
-      }
-    })
-    .catch(() => {
-      errEl.textContent = 'Connection error. Please try again.';
-      errEl.style.display = 'block';
-      btn.textContent = 'Verify Key';
-      btn.disabled = false;
-    });
-  }
-
-  function submitKeyRequest() {
-    const name    = document.getElementById('reqName').value.trim();
-    const email   = document.getElementById('reqEmail').value.trim();
-    const contact = document.getElementById('reqContact').value.trim();
-    const errEl   = document.getElementById('reqError');
-    const sucEl   = document.getElementById('reqSuccess');
-    const btn     = document.getElementById('submitReqBtn');
-
-    errEl.style.display = 'none';
-    sucEl.style.display = 'none';
-
-    if (!name || !email || !contact) {
-      errEl.textContent = 'Please fill in all fields.';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    btn.textContent = 'Submitting…';
-    btn.disabled = true;
-
-    fetch('{{ route("driver-key.request") }}', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ name, email, contact })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        sucEl.textContent = data.message;
-        sucEl.style.display = 'block';
-        document.getElementById('reqName').value = '';
-        document.getElementById('reqEmail').value = '';
-        document.getElementById('reqContact').value = '';
-        btn.textContent = 'Request Sent ✓';
-        setTimeout(() => {
-          bootstrap.Modal.getInstance(document.getElementById('driverKeyModal')).hide();
-          btn.textContent = 'Submit Request';
-          btn.disabled = false;
-        }, 2500);
-      } else {
-        errEl.textContent = data.message || 'Failed to submit request. Please try again.';
-        errEl.style.display = 'block';
-        btn.textContent = 'Submit Request';
-        btn.disabled = false;
-      }
-    })
-    .catch(() => {
-      errEl.textContent = 'Connection error. Please try again.';
-      errEl.style.display = 'block';
-      btn.textContent = 'Submit Request';
-      btn.disabled = false;
-    });
-  }
-</script>
 <script>
   const locInput = document.getElementById('location-input');
   const locSuggestions = document.getElementById('location-suggestions');

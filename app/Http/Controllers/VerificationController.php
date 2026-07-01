@@ -5,6 +5,7 @@ use App\Models\Verification;
 use App\Models\Driver;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class VerificationController extends Controller
 {
@@ -42,6 +43,9 @@ class VerificationController extends Controller
                 return redirect()->route('driver_verification')
                     ->with('error', 'Save returned false — no changes were written.');
             }
+
+            // Sync status to driver table so login check works
+            Driver::where('id', $driverId)->update(['ver_status' => $request->status]);
 
             return redirect()->route('driver_verification')
                 ->with('success', 'Status updated to ' . $request->status . ' successfully.');

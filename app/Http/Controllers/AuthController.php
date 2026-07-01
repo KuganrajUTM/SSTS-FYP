@@ -62,12 +62,11 @@ class AuthController extends Controller
         if (Auth::attempt($field)) {
             $user = Auth::user();
             
-            // Check verification table, not driver table
-            if($user->role === 'D') {
+            if ($user->role === 'D') {
                 $driver = Driver::where('user_id', $user->id)->first();
-                if (!$driver || !$driver->verification || $driver->verification->ver_status !== 'Approved') {
-                    Auth::logout(); // Important: logout unauthorized drivers
-                    return back()->withErrors(['failed' => 'Your Verification Still Pending']);
+                if (!$driver || $driver->ver_status !== 'Approved') {
+                    Auth::logout();
+                    return back()->withErrors(['failed' => 'Your account is pending verification by the manager.']);
                 }
             }
             
@@ -146,9 +145,8 @@ class AuthController extends Controller
         }
         
         Verification::create([
-            'admin_id' => 1,
             'driver_id' => $driver->id,
-            'doc_id' => $doc->id,
+            'doc_id'    => $doc->id,
             'ver_status' => 'Pending',
             'rej_reason' => 'N/A',
         ]);

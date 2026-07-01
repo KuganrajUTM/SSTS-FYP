@@ -8,7 +8,7 @@ class Verification extends Model
 {
     protected $table = 'verification';
     protected $fillable = [
-        'admin_id', 'driver_id', 'doc_id', 'ver_status', 'rej_reason', 'license_expiry_date'
+        'admin_id', 'driver_id', 'doc_id', 'ver_status', 'rej_reason', 'license_expiry_date',
     ];
 
     // Fix the relationship - belongsTo Driver

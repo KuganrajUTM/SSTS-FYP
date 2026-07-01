@@ -31,7 +31,7 @@ class VerificationController extends Controller
         if ($request->status === 'Rejected') {
             $verification->rej_reason = $request->rejection_reason ?? 'No reason provided';
         } else {
-            $verification->rej_reason = null;
+            $verification->rej_reason = 'N/A';
         }
 
         $verification->save();

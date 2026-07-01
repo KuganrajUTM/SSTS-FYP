@@ -196,6 +196,27 @@
                     </tr>
                 </tfoot>
                 <tbody>
+                    {{-- DEMO ROW: remove after screenshot --}}
+                    <tr style="background:#fff3f3;">
+                        <td>—</td>
+                        <td>Kuganraj Ramesh</td>
+                        <td>Ahmad Danial</td>
+                        <td>Demo Driver</td>
+                        <td>
+                            <span class="fw-bold text-danger">153.00</span>
+                            <br><small class="text-danger"><i class="fas fa-percent me-1"></i>2% penalty applied</small>
+                        </td>
+                        <td>02-06-2026</td>
+                        <td>
+                            <span class="badge bg-danger text-white">Overdue</span>
+                        </td>
+                        <td style="text-align:center;">
+                            <select class="form-select form-select-sm d-inline-block" style="width:120px;" disabled>
+                                <option selected>Overdue</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {{-- END DEMO ROW --}}
                     @foreach ($payments as $index => $pay)
                     <tr>
                         <td>{{ $index + 1 }}</td>

@@ -118,6 +118,17 @@
       background: rgba(0,184,148,0.1);
     }
 
+    .navbar-collapse {
+      display: flex !important;
+      flex-basis: auto !important;
+    }
+    .navbar-nav {
+      flex-direction: row !important;
+    }
+    .navbar-toggler {
+      display: none !important;
+    }
+
     /* ── HERO ────────────────────────────────────── */
     .hero {
       position: relative;
@@ -696,7 +707,7 @@
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
+    <div class="navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto align-items-lg-center">
         <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>

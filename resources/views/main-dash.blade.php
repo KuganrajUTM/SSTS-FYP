@@ -386,7 +386,7 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.status === 'ok') {
-                        const pos = { lat: data.lat, lng: data.lng };
+                        const pos = { lat: parseFloat(data.lat), lng: parseFloat(data.lng) };
                         if (markers[driverId]) {
                             markers[driverId].setPosition(pos);
                         } else {
@@ -404,7 +404,7 @@
                             map.setZoom(14);
                         }
                         document.getElementById('mapStatus').textContent = 'Last updated: ' + new Date(data.timestamp).toLocaleTimeString();
-                        checkArrival(data.lat, data.lng);
+                        checkArrival(pos.lat, pos.lng);
                     } else {
                         if (markers[driverId]) {
                             markers[driverId].setMap(null);
@@ -672,7 +672,4 @@
     }
 </style>
 
-@if(isset($userRole) && $userRole === 'P' && isset($parentDriverIds) && count($parentDriverIds) > 0)
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-@endif
 @endsection

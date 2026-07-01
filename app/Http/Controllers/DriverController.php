@@ -9,21 +9,32 @@ use App\Models\Document;
 
 class DriverController extends Controller
 {
-    public function view_pdf()
+    public function view_pdf(Request $request)
     {
-        
-        $id = 1;
-        $document = Document::find($id);
+        $driverId = $request->query('id');
+        $docsName = $request->query('docs_name');
 
-        if(!$document)
-        {
-            abort(404, 'Document not found. ');
+        $document = Document::where('driver_id', $driverId)->first();
+
+        if (!$document) {
+            abort(404, 'Document not found.');
         }
 
+        if ($docsName === 'LIC') {
+            $pdf = $document->license;
+            $filename = 'license.pdf';
+        } else {
+            $pdf = $document->docs;
+            $filename = 'spad.pdf';
+        }
 
-        return response($document->docs, 200, [
+        if (!$pdf) {
+            abort(404, 'File not uploaded.');
+        }
+
+        return response($pdf, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="document.pdf"',
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
         ]);
     }
 

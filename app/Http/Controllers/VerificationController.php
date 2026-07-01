@@ -87,20 +87,17 @@ class VerificationController extends Controller
 
     public function delete($driverId)
     {
-        $verification = Verification::where('driver_id', $driverId)->first();
-        
-        if (!$verification) {
-            return back()->with('error', 'Verification not found.');
+        $driver = Driver::find($driverId);
+
+        if (!$driver) {
+            return back()->with('error', 'Driver not found.');
         }
 
-        $driver = Driver::find($driverId);
-        if ($driver) {
-            $user = User::find($driver->user_id);
-            $driver->delete();
-            if ($user) $user->delete();
-        }
-        
-        $verification->delete();
+        $user = User::find($driver->user_id);
+        $driver->delete();
+        if ($user) $user->delete();
+
+        Verification::where('driver_id', $driverId)->delete();
 
         return back()->with('success', 'Driver registration deleted successfully.');
     }

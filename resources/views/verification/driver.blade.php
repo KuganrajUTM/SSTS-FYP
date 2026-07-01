@@ -230,10 +230,15 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const notification = document.getElementById('successNotification');
-    if (notification) {
-        notification.style.display = 'block';
-        setTimeout(() => notification.style.display = 'none', 5000);
+    const success = document.getElementById('successNotification');
+    if (success) {
+        success.style.display = 'block';
+        setTimeout(() => success.style.display = 'none', 5000);
+    }
+    const error = document.getElementById('errorNotification');
+    if (error) {
+        error.style.display = 'block';
+        setTimeout(() => error.style.display = 'none', 5000);
     }
 });
 

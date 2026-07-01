@@ -101,8 +101,8 @@ class AuthController extends Controller
             'vrn'                 => ['required'],
             'bank_name'           => ['required', 'string', 'max:100'],
             'bank_account_number' => ['required', 'string', 'max:50'],
-            'spad'                => ['required', 'mimetypes:application/pdf', 'max:2048'],
-            'license'             => ['required', 'mimetypes:application/pdf', 'max:2048'],
+            'spad'                => ['required', 'mimetypes:application/pdf', 'max:1048576'],
+            'license'             => ['required', 'mimetypes:application/pdf', 'max:1048576'],
         ]);
     
         // Read and encode the file contents

@@ -60,6 +60,32 @@
             font-weight: 800;
             color: var(--navy);
         }
+
+        /* Mobile sidebar overlay */
+        @media (max-width: 991.98px) {
+            #layoutSidenav #layoutSidenav_nav {
+                transform: translateX(-225px);
+                position: fixed;
+                top: 0; bottom: 0; left: 0;
+                width: 225px;
+                z-index: 1038;
+                transition: transform 0.3s ease;
+            }
+            .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav {
+                transform: translateX(0);
+            }
+            .sb-sidenav-toggled #layoutSidenav_content::after {
+                content: '';
+                display: block;
+                position: fixed;
+                top: 0; right: 0; bottom: 0; left: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1037;
+            }
+            #layoutSidenav_content {
+                margin-left: 0 !important;
+            }
+        }
     </style>
 </head>
 

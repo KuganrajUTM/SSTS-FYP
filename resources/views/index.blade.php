@@ -38,54 +38,66 @@
     }
 
     /* ── NAVBAR ─────────────────────────────────── */
-    .navbar {
-      background: var(--navy) !important;
-      padding: 0.75rem 0;
+    .ssts-topnav {
+      background: var(--navy);
       border-bottom: 3px solid var(--emerald);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
 
-    .navbar-brand img {
-      height: 40px;
-      width: auto;
+    .ssts-topnav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
     }
+
+    .ssts-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .ssts-brand img { height: 38px; width: auto; }
 
     .brand-name {
       font-size: 1.4rem;
       font-weight: 800;
-      color: var(--white) !important;
+      color: var(--white);
       letter-spacing: 0.04em;
     }
+    .brand-name span { color: var(--emerald); }
 
-    .brand-name span {
-      color: var(--emerald);
+    .ssts-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      flex: 1;
+    }
+
+    .ssts-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
     }
 
     .nav-link {
       color: rgba(255,255,255,0.75) !important;
       font-weight: 500;
       font-size: 0.92rem;
-      letter-spacing: 0.03em;
-      position: relative;
-      padding: 0.5rem 0.9rem !important;
-      transition: color 0.2s;
+      padding: 0.45rem 0.85rem !important;
+      border-radius: 5px;
+      transition: color 0.2s, background 0.2s;
+      text-decoration: none;
     }
-
-    .nav-link::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 50%;
-      width: 0; height: 2px;
-      background: var(--emerald);
-      transition: width 0.25s, left 0.25s;
-    }
-
-    .nav-link:hover, .nav-link.active {
-      color: var(--white) !important;
-    }
-
-    .nav-link:hover::after, .nav-link.active::after {
-      width: 60%; left: 20%;
-    }
+    .nav-link:hover { color: var(--white) !important; background: rgba(255,255,255,0.07); }
 
     .btn-register {
       background: var(--emerald);
@@ -95,13 +107,10 @@
       border-radius: 6px;
       padding: 0.45rem 1.2rem;
       font-size: 0.88rem;
-      transition: background 0.2s, transform 0.15s;
+      transition: background 0.2s;
+      cursor: pointer;
     }
-
-    .btn-register:hover {
-      background: var(--emerald-dk);
-      transform: translateY(-1px);
-    }
+    .btn-register:hover { background: var(--emerald-dk); }
 
     .btn-login {
       border: 1.5px solid rgba(255,255,255,0.35);
@@ -110,12 +119,39 @@
       padding: 0.45rem 1.1rem;
       font-size: 0.88rem;
       background: transparent;
+      text-decoration: none;
       transition: border-color 0.2s, background 0.2s;
     }
+    .btn-login:hover { border-color: var(--emerald); background: rgba(0,184,148,0.1); }
 
-    .btn-login:hover {
-      border-color: var(--emerald);
-      background: rgba(0,184,148,0.1);
+    .ssts-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 1.6rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+
+    @media (max-width: 768px) {
+      .ssts-nav-links {
+        display: none;
+        position: absolute;
+        top: 67px;
+        left: 0; right: 0;
+        background: var(--navy);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.75rem 1.5rem;
+        border-bottom: 2px solid var(--emerald);
+        gap: 0.25rem;
+        z-index: 999;
+      }
+      .ssts-nav-links.open { display: flex; }
+      .ssts-hamburger { display: block; }
+      .ssts-topnav-inner { position: relative; }
     }
 
 
@@ -688,18 +724,20 @@
 <body>
 
 <!-- ── NAVBAR ──────────────────────────────────────── -->
-<nav class="navbar">
-  <div class="container d-flex align-items-center justify-content-between">
-    <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+<nav class="ssts-topnav">
+  <div class="ssts-topnav-inner">
+    <a class="ssts-brand" href="#">
       <img src="assets/img/photo_2024-10-22_11-35-22-Photoroom.png" alt="SSTS Logo">
       <span class="brand-name">SS<span>TS</span></span>
     </a>
-    <div class="d-flex align-items-center gap-2">
+    <div class="ssts-nav-links" id="navLinks">
       <a class="nav-link" href="#">Home</a>
       <a class="nav-link" href="#features">Features</a>
       <a class="nav-link" href="#about">About</a>
       <a class="nav-link" href="#faq">FAQ</a>
-      <div class="dropdown ms-2">
+    </div>
+    <div class="ssts-nav-actions">
+      <div class="dropdown">
         <button class="btn-register dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
           Register
         </button>
@@ -716,8 +754,11 @@
           </li>
         </ul>
       </div>
-      <a href="{{ route('login') }}" class="btn-login ms-2">Login</a>
+      <a href="{{ route('login') }}" class="btn-login">Login</a>
     </div>
+    <button class="ssts-hamburger" id="navToggle" aria-label="Toggle menu">
+      <i class="bi bi-list"></i>
+    </button>
   </div>
 </nav>
 
@@ -1020,6 +1061,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  // Hamburger toggle
+  document.getElementById('navToggle').addEventListener('click', function() {
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+
   document.getElementById('driverRegisterBtn').addEventListener('click', function(e) {
     e.preventDefault();
     document.getElementById('driverKeyInput').value = '';

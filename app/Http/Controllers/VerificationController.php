@@ -21,22 +21,34 @@ class VerificationController extends Controller
             'rejection_reason' => 'nullable|string|max:255',
         ]);
 
-        $verification = Verification::where('driver_id', $driverId)->first();
+        try {
+            $verification = Verification::where('driver_id', $driverId)->first();
 
-        if (!$verification) {
-            return back()->with('error', 'Verification record not found.');
+            if (!$verification) {
+                return redirect()->route('driver_verification')
+                    ->with('error', 'Verification record not found for driver #' . $driverId);
+            }
+
+            $verification->ver_status = $request->status;
+            if ($request->status === 'Rejected') {
+                $verification->rej_reason = $request->rejection_reason ?? 'No reason provided';
+            } else {
+                $verification->rej_reason = 'N/A';
+            }
+
+            $result = $verification->save();
+
+            if (!$result) {
+                return redirect()->route('driver_verification')
+                    ->with('error', 'Save returned false — no changes were written.');
+            }
+
+            return redirect()->route('driver_verification')
+                ->with('success', 'Status updated to ' . $request->status . ' successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('driver_verification')
+                ->with('error', 'DB error: ' . $e->getMessage());
         }
-
-        $verification->ver_status = $request->status;
-        if ($request->status === 'Rejected') {
-            $verification->rej_reason = $request->rejection_reason ?? 'No reason provided';
-        } else {
-            $verification->rej_reason = 'N/A';
-        }
-
-        $verification->save();
-
-        return back()->with('success', 'Status updated successfully!');
     }
 
     public function updateLicenseExpiry(Request $request, $driverId)
@@ -45,16 +57,28 @@ class VerificationController extends Controller
             'license_expiry_date' => 'required|date',
         ]);
 
-        $verification = Verification::where('driver_id', $driverId)->first();
+        try {
+            $verification = Verification::where('driver_id', $driverId)->first();
 
-        if (!$verification) {
-            return back()->with('error', 'Verification record not found.');
+            if (!$verification) {
+                return redirect()->route('driver_verification')
+                    ->with('error', 'Verification record not found for driver #' . $driverId);
+            }
+
+            $verification->license_expiry_date = $request->license_expiry_date;
+            $result = $verification->save();
+
+            if (!$result) {
+                return redirect()->route('driver_verification')
+                    ->with('error', 'Save returned false — no changes were written.');
+            }
+
+            return redirect()->route('driver_verification')
+                ->with('success', 'License expiry date updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('driver_verification')
+                ->with('error', 'DB error: ' . $e->getMessage());
         }
-
-        $verification->license_expiry_date = $request->license_expiry_date;
-        $verification->save();
-
-        return back()->with('success', 'License expiry date updated successfully.');
     }
 
     public function delete($driverId)

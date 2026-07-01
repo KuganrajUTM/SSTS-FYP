@@ -32,6 +32,12 @@
     </div>
 @endif
 
+@if(session('error'))
+    <div class="overlay-notification" id="errorNotification" style="background-color:#e74c3c; box-shadow:0 4px 20px rgba(231,76,60,0.3);">
+        <i class="fas fa-times-circle me-2"></i>{{ session('error') }}
+    </div>
+@endif
+
 <h1 class="mt-4"><i class="fas fa-user-check me-2"></i>Driver Verification</h1>
 <ol class="breadcrumb mb-4"><li class="breadcrumb-item active">Verification</li></ol>
 

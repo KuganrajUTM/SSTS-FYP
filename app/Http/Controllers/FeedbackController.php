@@ -43,16 +43,23 @@ class FeedbackController extends Controller
         $userId = Session::get('user_id');
         if (!$userId) return redirect()->route('login');
 
-        $request->validate([
-            'type'        => 'required|in:rating,complaint',
-            'to_driver_id' => 'required|exists:driver,id',
-            'rating'      => 'nullable|integer|min:1|max:5',
-            'comment'     => 'required|string|max:1000',
-        ]);
+        $target = $request->input('target', 'driver');
+
+        $rules = [
+            'type'    => 'required|in:rating,complaint',
+            'comment' => 'required|string|max:1000',
+            'rating'  => 'nullable|integer|min:1|max:5',
+        ];
+
+        if ($target === 'driver') {
+            $rules['to_driver_id'] = 'required|exists:driver,id';
+        }
+
+        $request->validate($rules);
 
         Feedback::create([
             'from_user_id' => $userId,
-            'to_driver_id' => $request->to_driver_id,
+            'to_driver_id' => $target === 'driver' ? $request->to_driver_id : null,
             'type'         => $request->type,
             'rating'       => $request->type === 'rating' ? $request->rating : null,
             'comment'      => $request->comment,
@@ -61,7 +68,7 @@ class FeedbackController extends Controller
         return redirect()->route('feedback.parent')->with('success', 'Feedback submitted successfully.');
     }
 
-    // Driver views their submitted feedback + form to submit complaint about child
+    // Driver views their submitted feedback + form to submit feedback about management
     public function driverIndex()
     {
         $userId = Session::get('user_id');
@@ -70,36 +77,33 @@ class FeedbackController extends Controller
         $user = User::with('driver')->find($userId);
         if (!$user || !$user->driver) return redirect()->route('main');
 
-        $driver = $user->driver;
-        $children = Child::with('parent.user')->where('driver_id', $driver->id)->get();
-
-        $feedbacks = Feedback::with(['toChild.parent.user'])
-            ->where('from_user_id', $userId)
+        $feedbacks = Feedback::where('from_user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('feedback.driver', compact('children', 'feedbacks'));
+        return view('feedback.driver', compact('feedbacks'));
     }
 
-    // Driver submits complaint about a child
+    // Driver submits feedback or complaint about management
     public function driverStore(Request $request)
     {
         $userId = Session::get('user_id');
         if (!$userId) return redirect()->route('login');
 
         $request->validate([
-            'to_child_id' => 'required|exists:child,id',
-            'comment'     => 'required|string|max:1000',
+            'type'    => 'required|in:feedback,complaint',
+            'comment' => 'required|string|max:1000',
         ]);
 
         Feedback::create([
             'from_user_id' => $userId,
-            'to_child_id'  => $request->to_child_id,
-            'type'         => 'complaint',
+            'to_driver_id' => null,
+            'to_child_id'  => null,
+            'type'         => $request->type,
             'comment'      => $request->comment,
         ]);
 
-        return redirect()->route('feedback.driver')->with('success', 'Complaint submitted successfully.');
+        return redirect()->route('feedback.driver')->with('success', 'Submitted successfully.');
     }
 
     // Manager views all feedback

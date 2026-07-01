@@ -35,6 +35,8 @@
                         <td>
                             @if($fb->type === 'rating')
                                 <span class="badge bg-warning text-dark">Rating</span>
+                            @elseif($fb->type === 'feedback')
+                                <span class="badge bg-success">Feedback</span>
                             @else
                                 <span class="badge bg-danger">Complaint</span>
                             @endif
@@ -45,7 +47,7 @@
                             @elseif($fb->toChild)
                                 <i class="fas fa-child me-1 text-muted"></i>{{ $fb->toChild->name ?? '—' }}
                             @else
-                                —
+                                <span class="badge bg-secondary">Management</span>
                             @endif
                         </td>
                         <td>

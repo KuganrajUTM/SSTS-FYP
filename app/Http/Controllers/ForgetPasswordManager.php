@@ -22,18 +22,17 @@ class ForgetPasswordManager extends Controller
 
         $token = Str::random(64);
 
-        DB::table('password_reset_tokens')->insert([
-            'email' => $request->email,
-            'token' => $token,
-            'created_at' => Carbon::now()
-        ]);
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            ['token' => $token, 'created_at' => Carbon::now()]
+        );
 
         $user = User::where('email', $request->email)->first();
         $username = $user->name;
 
         Mail::send("emails.forget-password", ['token' => $token, 'name' => $username], function ($message) use ($request){
             $message->to($request->email);
-            $message->subject("Reset Passowrd");
+            $message->subject("Reset Your Password - SSTS");
         });
 
         return redirect()->to(route('forgot-password'))->with("success", "We have sent an email to reset password");
@@ -58,7 +57,7 @@ class ForgetPasswordManager extends Controller
                                 ])->first();
 
         if(!$updatePassword){
-            return redirect()->to(route('reset-password'))->with('error', 'Invalid');
+            return redirect()->route('forgot-password')->with('error', 'This reset link is invalid or has expired. Please request a new one.');
         }
 
         User::where('email', $request->email)->update([

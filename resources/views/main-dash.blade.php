@@ -299,33 +299,19 @@
 </script>
 @endif
 
-{{-- Parent: Leaflet Map JS --}}
+{{-- Parent: Google Maps JS --}}
 @if(isset($userRole) && $userRole === 'P' && isset($parentDriverIds) && count($parentDriverIds) > 0)
 <script>
-    const driverIds      = JSON.parse('{!! json_encode($parentDriverIds) !!}');
-    const schoolNames    = JSON.parse('{!! json_encode($schoolNames ?? []) !!}');
+    const driverIds       = JSON.parse('{!! json_encode($parentDriverIds) !!}');
+    const schoolNames     = JSON.parse('{!! json_encode($schoolNames ?? []) !!}');
     const locationBaseUrl = '{{ url("/driver/location") }}';
 
-    const map = L.map('map').setView([3.1390, 101.6869], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    const vanIcon = L.divIcon({
-        html: '<div style="background:#00b894;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.2);"><i class="fas fa-bus" style="color:#fff;font-size:16px;"></i></div>',
-        className: '', iconSize: [36, 36], iconAnchor: [18, 18],
-    });
-
-    const schoolIcon = L.divIcon({
-        html: '<div style="background:#0a1628;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.2);"><i class="fas fa-school" style="color:#fff;font-size:15px;"></i></div>',
-        className: '', iconSize: [36, 36], iconAnchor: [18, 18],
-    });
-
+    let map, geocoder;
     let markers      = {};
-    let schoolCoords = []; // [{name, lat, lng}]
+    let infoWindows  = {};
+    let schoolCoords = [];
     let arrivalShown = false;
 
-    // Haversine distance in metres
     function distanceM(lat1, lon1, lat2, lon2) {
         const R = 6371000;
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -347,7 +333,6 @@
         const box = document.getElementById('arrivalAlert');
         document.getElementById('arrivalAlertText').textContent = 'Van has arrived at ' + schoolName + '!';
         box.style.display = 'flex';
-        // Auto-dismiss after 30 seconds
         setTimeout(function() {
             box.style.display = 'none';
             arrivalShown = false;
@@ -356,65 +341,96 @@
 
     function checkArrival(vanLat, vanLng) {
         schoolCoords.forEach(function(school) {
-            const dist = distanceM(vanLat, vanLng, school.lat, school.lng);
-            if (dist <= 150) {
+            if (distanceM(vanLat, vanLng, school.lat, school.lng) <= 150) {
                 showArrivalBanner(school.name);
             }
         });
     }
 
-    // Geocode school names using Nominatim (free, no key needed)
+    function makeSvgIcon(color, letter) {
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36">' +
+            '<circle cx="18" cy="18" r="17" fill="' + color + '" stroke="white" stroke-width="2.5"/>' +
+            '<text x="18" y="23" font-size="14" font-weight="bold" text-anchor="middle" fill="white" font-family="Arial">' + letter + '</text>' +
+            '</svg>';
+        return {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+            scaledSize: new google.maps.Size(36, 36),
+            anchor: new google.maps.Point(18, 18)
+        };
+    }
+
     function geocodeSchools() {
         schoolNames.forEach(function(name) {
             if (!name) return;
-            fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(name))
-                .then(r => r.json())
-                .then(function(results) {
-                    if (results && results.length > 0) {
-                        const lat = parseFloat(results[0].lat);
-                        const lng = parseFloat(results[0].lon);
-                        schoolCoords.push({ name: name, lat: lat, lng: lng });
-                        L.marker([lat, lng], { icon: schoolIcon })
-                            .addTo(map)
-                            .bindPopup('<b>' + name + '</b><br>School destination');
-                    }
-                })
-                .catch(function() {});
+            geocoder.geocode({ address: name + ', Malaysia' }, function(results, status) {
+                if (status === 'OK') {
+                    const lat = results[0].geometry.location.lat();
+                    const lng = results[0].geometry.location.lng();
+                    schoolCoords.push({ name: name, lat: lat, lng: lng });
+                    const marker = new google.maps.Marker({
+                        position: { lat: lat, lng: lng },
+                        map: map,
+                        icon: makeSvgIcon('#0a1628', 'S'),
+                        title: name
+                    });
+                    const iw = new google.maps.InfoWindow({ content: '<b>' + name + '</b><br>School destination' });
+                    marker.addListener('click', function() { iw.open(map, marker); });
+                }
+            });
         });
     }
 
     function fetchLocations() {
-        driverIds.forEach(function (driverId) {
-            fetch(`${locationBaseUrl}/${driverId}`)
-                .then(r => r.json())
+        driverIds.forEach(function(driverId) {
+            fetch(locationBaseUrl + '/' + driverId)
+                .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.status === 'ok') {
-                        const latlng = [data.lat, data.lng];
+                        const pos = { lat: data.lat, lng: data.lng };
                         if (markers[driverId]) {
-                            markers[driverId].setLatLng(latlng);
+                            markers[driverId].setPosition(pos);
                         } else {
-                            markers[driverId] = L.marker(latlng, { icon: vanIcon })
-                                .addTo(map)
-                                .bindPopup('Your driver\'s van');
-                            map.setView(latlng, 14);
+                            markers[driverId] = new google.maps.Marker({
+                                position: pos,
+                                map: map,
+                                icon: makeSvgIcon('#00b894', 'B'),
+                                title: "Driver's Van"
+                            });
+                            infoWindows[driverId] = new google.maps.InfoWindow({ content: "Your driver's van" });
+                            markers[driverId].addListener('click', function() {
+                                infoWindows[driverId].open(map, markers[driverId]);
+                            });
+                            map.setCenter(pos);
+                            map.setZoom(14);
                         }
                         document.getElementById('mapStatus').textContent = 'Last updated: ' + new Date(data.timestamp).toLocaleTimeString();
                         checkArrival(data.lat, data.lng);
                     } else {
                         if (markers[driverId]) {
-                            map.removeLayer(markers[driverId]);
+                            markers[driverId].setMap(null);
                             delete markers[driverId];
                         }
                         document.getElementById('mapStatus').textContent = 'Driver is not sharing location.';
                     }
+                })
+                .catch(function() {
+                    document.getElementById('mapStatus').textContent = 'Connection lost. Retrying...';
                 });
         });
     }
 
-    geocodeSchools();
-    fetchLocations();
-    setInterval(fetchLocations, 5000);
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 3.1390, lng: 101.6869 },
+            zoom: 12
+        });
+        geocoder = new google.maps.Geocoder();
+        geocodeSchools();
+        fetchLocations();
+        setInterval(fetchLocations, 5000);
+    }
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&callback=initMap" async defer></script>
 @endif
 
 {{-- Driver location info modal --}}

@@ -11,8 +11,7 @@
     @vite(['resources/sass/icons.scss'])
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     @yield('styles')
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
     <script src="https://unpkg.com/@laravel/echo@1.15.3/dist/echo.js"></script>
 

@@ -40,6 +40,6 @@ class Payment extends Model
     }
 
     public function receipt(){
-        return $this->hasOne(Receipt::class);
+        return $this->hasOne(Receipt::class, 'pay_id');
     }
 }

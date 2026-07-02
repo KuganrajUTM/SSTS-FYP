@@ -215,11 +215,17 @@
                         </td>
                         <td style="text-align:center;">
                             @if ($pay->pay_status !== 'Paid')
-                                <select class="form-select form-select-sm d-inline-block" style="width:120px;"
+                                <select class="form-select form-select-sm d-inline-block mb-1" style="width:120px;"
                                         onchange="openConfirmationModal('{{ $pay->id }}', this.value)">
                                     <option value="{{ $pay->pay_status }}" selected>{{ $pay->pay_status }}</option>
                                     <option value="Paid">Paid (Cash)</option>
                                 </select>
+                            @endif
+                            @if ($pay->receipt && $pay->receipt->proof_path)
+                                <button class="btn btn-sm btn-info text-white"
+                                        onclick="viewProof('{{ asset('storage/' . $pay->receipt->proof_path) }}')">
+                                    <i class="fas fa-file-image me-1"></i> View Proof
+                                </button>
                             @endif
                         </td>
                     </tr>
@@ -352,6 +358,37 @@ function openTakeAction(childId, parentName, childName, phone, email, address) {
         </div>
     </div>
 </div>
+
+{{-- QR Proof Viewer Modal --}}
+<div class="modal fade" id="proofModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius:15px; overflow:hidden;">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-file-image me-2"></i>Payment Proof (QR Pay)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <img id="proofImage" src="" alt="Payment Proof" class="img-fluid rounded"
+                     style="max-height:70vh; object-fit:contain; display:none;">
+                <iframe id="proofPdf" src="" style="width:100%; height:70vh; border:none; display:none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewProof(url) {
+    const isPdf = url.toLowerCase().endsWith('.pdf');
+    document.getElementById('proofImage').style.display = isPdf ? 'none' : 'block';
+    document.getElementById('proofPdf').style.display   = isPdf ? 'block' : 'none';
+    if (isPdf) {
+        document.getElementById('proofPdf').src = url;
+    } else {
+        document.getElementById('proofImage').src = url;
+    }
+    new bootstrap.Modal(document.getElementById('proofModal')).show();
+}
+</script>
 
 <script>
     function openConfirmationModal(paymentId, newStatus) {

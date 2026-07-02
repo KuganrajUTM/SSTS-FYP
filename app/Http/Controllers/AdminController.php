@@ -155,7 +155,7 @@ class AdminController extends Controller
 
     public function paymentRecords(Request $request)
     {
-        $query = Payment::with(['child', 'parent.user', 'driver.user']);
+        $query = Payment::with(['child', 'parent.user', 'driver.user', 'receipt']);
 
         $paymentCounts = Payment::selectRaw('
             COUNT(CASE WHEN pay_status = "Pending" THEN 1 END) AS pending_count,

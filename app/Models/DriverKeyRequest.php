@@ -8,7 +8,7 @@ class DriverKeyRequest extends Model
 {
     protected $table = 'driver_key_requests';
 
-    protected $fillable = ['name', 'email', 'contact', 'status', 'fulfilled_at'];
+    protected $fillable = ['name', 'email', 'contact', 'license_path', 'status', 'fulfilled_at'];
 
     protected $casts = [
         'fulfilled_at' => 'datetime',

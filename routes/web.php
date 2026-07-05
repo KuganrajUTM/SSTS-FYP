@@ -60,6 +60,7 @@ Route::get('/driver', [VerificationController::class, 'index'])->name('driver_ve
 
 // Driver key — public endpoints
 Route::post('/validate-driver-key', [DriverKeyController::class, 'validateKey'])->name('driver-key.validate');
+Route::get('/driver-key-request', [DriverKeyController::class, 'showRequest'])->name('driver-key.request.show');
 Route::post('/driver-key-request', [DriverKeyController::class, 'storeRequest'])->name('driver-key.request');
 
 // Admin — driver key management
@@ -67,6 +68,7 @@ Route::get('/admin/driver-keys', [DriverKeyController::class, 'index'])->name('a
 Route::post('/admin/driver-keys', [DriverKeyController::class, 'store'])->name('admin.driver-keys.store');
 Route::delete('/admin/driver-keys/{id}', [DriverKeyController::class, 'destroy'])->name('admin.driver-keys.destroy');
 Route::post('/admin/driver-keys/{id}/send', [DriverKeyController::class, 'sendKey'])->name('admin.driver-keys.send');
+Route::get('/admin/driver-key-requests/{id}/license', [DriverKeyController::class, 'viewLicense'])->name('admin.driver-key-request.license');
 
 Route::get('/register', function () {
     return view('register');

@@ -548,7 +548,7 @@
 
     <div class="bottom-links">
       <span><a href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Go to Login</a></span>
-      <span>Registering as a driver? <a href="{{ route('home') }}">Go to homepage</a></span>
+      <span>Registering as a driver? <a href="{{ route('driver-key.request.show') }}">Request a driver key</a></span>
     </div>
 
   </div>

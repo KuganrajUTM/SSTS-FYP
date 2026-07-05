@@ -7,6 +7,7 @@ use App\Models\DriverKey;
 use App\Models\DriverKeyRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class DriverKeyController extends Controller
 {
@@ -70,25 +71,44 @@ class DriverKeyController extends Controller
         return response()->json(['valid' => true]);
     }
 
+    public function showRequest()
+    {
+        return view('driver-key-request');
+    }
+
     public function storeRequest(Request $request)
     {
         $request->validate([
             'name'    => 'required|string|max:255',
             'email'   => 'required|email|max:255',
             'contact' => 'required|string|max:30',
+            'license' => 'required|mimes:pdf|max:5120',
         ]);
+
+        $path = $request->file('license')->store('license-requests', 'public');
 
         DriverKeyRequest::create([
-            'name'    => $request->name,
-            'email'   => $request->email,
-            'contact' => $request->contact,
-            'status'  => 'pending',
+            'name'         => $request->name,
+            'email'        => $request->email,
+            'contact'      => $request->contact,
+            'license_path' => $path,
+            'status'       => 'pending',
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Request submitted! The manager will email your key shortly.',
-        ]);
+        return redirect()->route('driver-key.request.show')
+            ->with('success', 'Request submitted! The manager will review your license and email your key shortly.');
+    }
+
+    public function viewLicense(int $id)
+    {
+        $keyRequest = DriverKeyRequest::findOrFail($id);
+
+        if (!$keyRequest->license_path || !Storage::disk('public')->exists($keyRequest->license_path)) {
+            abort(404, 'License file not found.');
+        }
+
+        $filePath = storage_path('app/public/' . $keyRequest->license_path);
+        return response()->file($filePath, ['Content-Type' => 'application/pdf']);
     }
 
     public function sendKey(int $id)

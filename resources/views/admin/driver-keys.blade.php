@@ -196,6 +196,7 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Contact</th>
+                            <th>License</th>
                             <th>Status</th>
                             <th>Requested</th>
                             <th>Fulfilled</th>
@@ -209,6 +210,18 @@
                             <td><strong>{{ $req->name }}</strong></td>
                             <td>{{ $req->email }}</td>
                             <td>{{ $req->contact }}</td>
+                            <td>
+                                @if($req->license_path)
+                                    <a href="{{ route('admin.driver-key-request.license', $req->id) }}"
+                                       target="_blank"
+                                       class="btn btn-sm"
+                                       style="background:#e6f9f5; border:1.5px solid rgba(0,184,148,0.35); color:#007a63; border-radius:7px; font-size:0.78rem; font-weight:600; padding:0.25rem 0.65rem;">
+                                        <i class="fas fa-file-pdf me-1"></i> View
+                                    </a>
+                                @else
+                                    <span class="text-muted small">—</span>
+                                @endif
+                            </td>
                             <td>
                                 @if($req->status === 'pending')
                                     <span class="badge bg-warning text-dark">Pending</span>

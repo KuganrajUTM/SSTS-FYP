@@ -1001,7 +1001,7 @@
           <p id="keyError" style="display:none; font-size:0.8rem; color:#e74c3c; margin-top:0.45rem; margin-bottom:0;"></p>
           <p style="margin-top:1.1rem; margin-bottom:0; font-size:0.84rem; color:#4a5568; text-align:center;">
             Don't have a key?
-            <a href="#" onclick="showRequestTab(); return false;"
+            <a href="{{ route('driver-key.request.show') }}"
                style="color:#00b894; font-weight:600; text-decoration:none;">Request one here</a>
           </p>
         </div>

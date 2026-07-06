@@ -433,42 +433,37 @@
 <script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&callback=initMap" async defer></script>
 @endif
 
-{{-- Driver location info modal --}}
-@if(isset($driver) && $driver && (empty($driver->city) || empty($driver->district)))
-<div class="modal fade" id="locationModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="locationModalLabel" aria-hidden="true">
+{{-- Profile Incomplete Reminder --}}
+@if(!empty($profileIncomplete))
+<div class="modal fade" id="profileIncompleteModal" tabindex="-1" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius:16px; overflow:hidden; border:1.5px solid rgba(0,184,148,0.25);">
             <div class="modal-header" style="background:#e6f9f5; border-bottom:1.5px solid rgba(0,184,148,0.25);">
-                <h5 class="modal-title" id="locationModalLabel" style="font-family:'Syne',sans-serif; font-weight:700; color:#007a63;">
-                    <i class="fas fa-map-marker-alt me-2"></i> Complete Your Profile
+                <h5 class="modal-title" style="font-family:'Syne',sans-serif; font-weight:700; color:#007a63;">
+                    <i class="bi bi-person-fill-exclamation me-2"></i> Profile Incomplete
                 </h5>
             </div>
-            <div class="modal-body p-4">
-                <p class="text-muted mb-4" style="font-size:0.95rem;">Please fill in your city and district so parents can find your schedule locations.</p>
-                <form action="{{ route('driver.update-location-info') }}" method="POST">
-                    @csrf
-                    <div class="mb-3">
-                        <label class="form-label fw-600" style="font-weight:600; color:#0a1628;">City</label>
-                        <input type="text" name="city" class="form-control" placeholder="e.g. Johor Bahru" required
-                               style="border:1.5px solid rgba(0,184,148,0.35); border-radius:8px; padding:10px 14px;">
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label" style="font-weight:600; color:#0a1628;">District</label>
-                        <input type="text" name="district" class="form-control" placeholder="e.g. Skudai" required
-                               style="border:1.5px solid rgba(0,184,148,0.35); border-radius:8px; padding:10px 14px;">
-                    </div>
-                    <button type="submit" class="btn w-100" style="background:linear-gradient(135deg,#00b894,#007a63); color:#fff; font-weight:700; border-radius:8px; padding:10px;">
-                        Save & Continue
-                    </button>
-                </form>
+            <div class="modal-body p-4 text-center">
+                <div style="width:64px; height:64px; background:#e6f9f5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.1rem; border:2px solid rgba(0,184,148,0.3);">
+                    <i class="bi bi-person-fill" style="font-size:1.8rem; color:#00b894;"></i>
+                </div>
+                <p style="font-size:0.95rem; color:#4a5568; margin:0;">
+                    Some information in your profile is missing. Please complete it so the system can work properly for you.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top:1.5px solid rgba(0,184,148,0.15); justify-content:center;">
+                <a href="{{ route('profile.edit') }}" class="btn btn-sm"
+                   style="background:linear-gradient(135deg,#00b894,#007a63); color:#fff; font-weight:700; border-radius:8px; font-family:'Syne',sans-serif; font-size:0.9rem; padding:0.45rem 1.3rem;">
+                    <i class="bi bi-pencil-fill me-1"></i> Complete Profile
+                </a>
             </div>
         </div>
     </div>
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var modal = new bootstrap.Modal(document.getElementById('locationModal'));
-        modal.show();
+        new bootstrap.Modal(document.getElementById('profileIncompleteModal')).show();
     });
 </script>
 @endif

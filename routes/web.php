@@ -26,9 +26,13 @@ Route::get('/main', function () {
     $user = Auth::user();
     $driver = null;
     $parentDriverIds = [];
+    $profileIncomplete = false;
 
     if ($user && $user->role === 'D') {
         $driver = $user->driver;
+        if ($driver) {
+            $profileIncomplete = empty($driver->VRN) || empty($driver->city) || empty($driver->district);
+        }
     }
 
     $schoolNames = [];
@@ -36,17 +40,19 @@ Route::get('/main', function () {
     if ($user && $user->role === 'P') {
         $parent = $user->parent;
         if ($parent) {
-            $parentDriverIds = $parent->children->pluck('driver_id')->filter()->unique()->values();
-            $schoolNames     = $parent->children->pluck('school_name')->filter()->unique()->values()->toArray();
+            $profileIncomplete   = empty($parent->phone) || empty($parent->location) || empty($parent->city) || empty($parent->district);
+            $parentDriverIds     = $parent->children->pluck('driver_id')->filter()->unique()->values();
+            $schoolNames         = $parent->children->pluck('school_name')->filter()->unique()->values()->toArray();
         }
     }
 
     return view('main-dash', [
-        'driver'          => $driver,
-        'userName'        => $user->name ?? '',
-        'parentDriverIds' => $parentDriverIds,
-        'schoolNames'     => $schoolNames,
-        'userRole'        => $user->role ?? null,
+        'driver'            => $driver,
+        'userName'          => $user->name ?? '',
+        'parentDriverIds'   => $parentDriverIds,
+        'schoolNames'       => $schoolNames,
+        'userRole'          => $user->role ?? null,
+        'profileIncomplete' => $profileIncomplete,
     ]);
 })->name('main');
 

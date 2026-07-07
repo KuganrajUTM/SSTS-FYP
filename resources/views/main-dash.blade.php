@@ -312,7 +312,8 @@
     const schoolNames     = JSON.parse('{!! json_encode($schoolNames ?? []) !!}');
     const locationBaseUrl = '{{ url("/driver/location") }}';
 
-    let map, geocoder, directionsService;
+    let map, geocoder;
+    const mapsApiKey = '{{ config("services.google_maps.key") }}';
     let markers      = {};
     let infoWindows  = {};
     let schoolCoords = [];
@@ -387,25 +388,46 @@
         });
     }
 
-    function fetchEta(vanLat, vanLng) {
+    async function fetchEta(vanLat, vanLng) {
         if (!schoolCoords.length) return;
         const now = Date.now();
-        if (now - etaLastFetch < 30000) return; // only call every 30s
+        if (now - etaLastFetch < 30000) return;
         etaLastFetch = now;
 
         const school = schoolCoords[0];
-        directionsService.route({
-            origin:      { lat: vanLat, lng: vanLng },
-            destination: { lat: school.lat, lng: school.lng },
-            travelMode:  google.maps.TravelMode.DRIVING
-        }, function(result, status) {
-            if (status === 'OK') {
-                const leg = result.routes[0].legs[0];
-                document.getElementById('etaDistance').textContent = leg.distance.text + ' from school';
-                document.getElementById('etaDuration').textContent = leg.duration.text;
-                document.getElementById('etaCard').style.display = 'flex';
+        try {
+            const response = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Goog-Api-Key': mapsApiKey,
+                    'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters'
+                },
+                body: JSON.stringify({
+                    origin:      { location: { latLng: { latitude: vanLat,    longitude: vanLng      } } },
+                    destination: { location: { latLng: { latitude: school.lat, longitude: school.lng } } },
+                    travelMode: 'DRIVE'
+                })
+            });
+            const data = await response.json();
+            if (data.routes && data.routes.length > 0) {
+                const route      = data.routes[0];
+                const distM      = route.distanceMeters;
+                const durSec     = parseInt(route.duration);
+                const distText   = distM >= 1000
+                    ? (distM / 1000).toFixed(1) + ' km from school'
+                    : distM + ' m from school';
+                const mins       = Math.ceil(durSec / 60);
+                const durText    = mins >= 60
+                    ? Math.floor(mins / 60) + ' hr ' + (mins % 60) + ' min'
+                    : '~' + mins + ' min';
+                document.getElementById('etaDistance').textContent = distText;
+                document.getElementById('etaDuration').textContent = durText;
+                document.getElementById('etaCard').style.display   = 'flex';
             }
-        });
+        } catch (e) {
+            // silent fail — ETA card stays hidden
+        }
     }
 
     function fetchLocations() {
@@ -454,8 +476,7 @@
             center: { lat: 3.1390, lng: 101.6869 },
             zoom: 12
         });
-        geocoder          = new google.maps.Geocoder();
-        directionsService = new google.maps.DirectionsService();
+        geocoder = new google.maps.Geocoder();
         geocodeSchools();
         fetchLocations();
         setInterval(fetchLocations, 5000);

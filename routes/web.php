@@ -198,6 +198,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/payments', [AdminController::class, 'paymentRecords'])->name('admin.payments');
         Route::delete('/admin/child/{id}/unassign', [AdminController::class, 'unassignChild'])->name('admin.child.unassign');
         Route::get('/admin/users', [AdminController::class, 'viewUsers'])->name('admin.users');
+        Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.user.destroy');
         Route::get('/admin/sos', [AdminController::class, 'sosIndex'])->name('admin.sos');
         Route::delete('/admin/sos/{id}', [AdminController::class, 'sosDestroy'])->name('admin.sos.destroy');
         Route::get('/user/{id}/details', [AdminController::class, 'userDetails'])->name('user.details');

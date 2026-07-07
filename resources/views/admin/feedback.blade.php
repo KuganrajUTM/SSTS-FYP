@@ -46,6 +46,8 @@
                                 <i class="fas fa-car me-1 text-muted"></i>{{ $fb->toDriver->user->name ?? '—' }}
                             @elseif($fb->toChild)
                                 <i class="fas fa-child me-1 text-muted"></i>{{ $fb->toChild->name ?? '—' }}
+                            @elseif($fb->toParent)
+                                <i class="fas fa-user-friends me-1 text-primary"></i>{{ $fb->toParent->user->name ?? '—' }}
                             @else
                                 <span class="badge bg-secondary">Management</span>
                             @endif

@@ -9,7 +9,7 @@ class Feedback extends Model
     protected $table = 'feedback';
 
     protected $fillable = [
-        'from_user_id', 'to_driver_id', 'to_child_id',
+        'from_user_id', 'to_driver_id', 'to_child_id', 'to_parent_id',
         'type', 'rating', 'comment', 'status', 'manager_remark',
     ];
 
@@ -26,5 +26,10 @@ class Feedback extends Model
     public function toChild()
     {
         return $this->belongsTo(Child::class, 'to_child_id');
+    }
+
+    public function toParent()
+    {
+        return $this->belongsTo(Parents::class, 'to_parent_id');
     }
 }

@@ -132,9 +132,8 @@
         <label for="email">Email Address</label>
         <div class="input-wrap">
           <i class="bi bi-envelope icon-left"></i>
-          <input type="email" id="email" name="email" placeholder="you@example.com" value="{{ old('email') }}">
+          <input type="email" id="email" name="email" value="{{ $email }}" readonly style="background:#e8f5f2; color:#4a5568; cursor:not-allowed;">
         </div>
-        @error('email')<p class="err-text">{{ $message }}</p>@enderror
       </div>
 
       <div>

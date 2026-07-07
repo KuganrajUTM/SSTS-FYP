@@ -34,7 +34,15 @@ class FeedbackController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('feedback.parent', compact('drivers', 'feedbacks'));
+        $parentRecord = $parent;
+        $receivedFeedbacks = $parent
+            ? Feedback::with(['fromUser'])
+                ->where('to_parent_id', $parent->id)
+                ->orderBy('created_at', 'desc')
+                ->get()
+            : collect();
+
+        return view('feedback.parent', compact('drivers', 'feedbacks', 'receivedFeedbacks'));
     }
 
     // Parent submits rating or complaint
@@ -68,37 +76,51 @@ class FeedbackController extends Controller
         return redirect()->route('feedback.parent')->with('success', 'Feedback submitted successfully.');
     }
 
-    // Driver views their submitted feedback + form to submit feedback about management
+    // Driver views their submitted feedback + form to submit feedback about management or parent
     public function driverIndex()
     {
         $userId = Session::get('user_id');
         if (!$userId) return redirect()->route('login');
 
-        $user = User::with('driver')->find($userId);
+        $user = User::with('driver.children.parent.user')->find($userId);
         if (!$user || !$user->driver) return redirect()->route('main');
 
-        $feedbacks = Feedback::where('from_user_id', $userId)
+        $parents = $user->driver->children
+            ->filter(fn($c) => $c->parent_id)
+            ->map(fn($c) => $c->parent)
+            ->filter()
+            ->unique('id')
+            ->values();
+
+        $feedbacks = Feedback::with(['toParent.user'])
+            ->where('from_user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('feedback.driver', compact('feedbacks'));
+        return view('feedback.driver', compact('feedbacks', 'parents'));
     }
 
-    // Driver submits feedback or complaint about management
+    // Driver submits feedback or complaint to management or a parent
     public function driverStore(Request $request)
     {
         $userId = Session::get('user_id');
         if (!$userId) return redirect()->route('login');
 
-        $request->validate([
+        $target = $request->input('target', 'management');
+
+        $rules = [
             'type'    => 'required|in:feedback,complaint',
             'comment' => 'required|string|max:1000',
-        ]);
+        ];
+        if ($target === 'parent') {
+            $rules['to_parent_id'] = 'required|exists:parent,id';
+        }
+
+        $request->validate($rules);
 
         Feedback::create([
             'from_user_id' => $userId,
-            'to_driver_id' => null,
-            'to_child_id'  => null,
+            'to_parent_id' => $target === 'parent' ? $request->to_parent_id : null,
             'type'         => $request->type,
             'comment'      => $request->comment,
         ]);
@@ -109,7 +131,7 @@ class FeedbackController extends Controller
     // Manager views all feedback
     public function adminIndex()
     {
-        $feedbacks = Feedback::with(['fromUser', 'toDriver.user', 'toChild.parent.user'])
+        $feedbacks = Feedback::with(['fromUser', 'toDriver.user', 'toChild.parent.user', 'toParent.user'])
             ->orderBy('status')
             ->orderBy('created_at', 'desc')
             ->get();

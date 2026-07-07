@@ -12,13 +12,20 @@
     .category-header { background: linear-gradient(135deg, var(--emerald), var(--emerald-dk)); color: white; padding: 1.5rem; border-radius: 16px 16px 0 0; font-weight: 700; font-size: 1.3rem; }
     .table-custom th, .table-custom td { border: 1px solid #e5e7eb; padding: 1rem; text-align: left; }
     .table-custom { width: 100%; margin-bottom: 0; }
-    .view-details { 
-        background: linear-gradient(135deg, var(--emerald), var(--emerald-dk)); 
-        color: white; padding: 0.5rem 1.5rem; border-radius: 25px; 
+    .view-details {
+        background: linear-gradient(135deg, var(--emerald), var(--emerald-dk));
+        color: white; padding: 0.5rem 1.5rem; border-radius: 25px;
         text-decoration: none; font-weight: 600; transition: all 0.3s ease;
         display: inline-block; font-size: 0.9rem;
     }
     .view-details:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,184,148,0.4); color: white !important; }
+    .btn-delete-user {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white; padding: 0.5rem 1.25rem; border-radius: 25px;
+        border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+        transition: all 0.3s ease; display: inline-block;
+    }
+    .btn-delete-user:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(231,76,60,0.4); }
     .no-data { text-align: center; color: var(--slate); font-style: italic; padding: 2rem; }
     @media (max-width: 768px) { .table-custom th, .table-custom td { padding: 0.75rem 0.5rem; font-size: 0.9rem; } }
 </style>
@@ -26,6 +33,12 @@
 <div class="admin-container">
     <div class="container">
         <h1 class="text-center mb-4" style="color: var(--navy); font-weight: 800; font-size: 2.2rem;">👥 Manage Users</h1>
+
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show text-center" style="border-radius:10px;">
+                {{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
         
         <div class="admin-card">
             <div class="category-header">
@@ -49,7 +62,14 @@
                                     <tr>
                                         <td>{{ $key + 1 }}</td>
                                         <td>{{ $parent->name }}</td>
-                                        <td><a href="{{ route('user.details', $parent->id) }}" class="view-details">View Details</a></td>
+                                        <td class="d-flex gap-2 align-items-center">
+                                            <a href="{{ route('user.details', $parent->id) }}" class="view-details">View Details</a>
+                                            <form action="{{ route('admin.user.destroy', $parent->id) }}" method="POST" onsubmit="return confirm('Delete {{ addslashes($parent->name) }}? This will remove all their data permanently.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-delete-user"><i class="fas fa-trash me-1"></i>Delete</button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -76,7 +96,14 @@
                                     <tr>
                                         <td>{{ $key + 1 }}</td>
                                         <td>{{ $driver->name }}</td>
-                                        <td><a href="{{ route('user.details', $driver->id) }}" class="view-details">View Details</a></td>
+                                        <td class="d-flex gap-2 align-items-center">
+                                            <a href="{{ route('user.details', $driver->id) }}" class="view-details">View Details</a>
+                                            <form action="{{ route('admin.user.destroy', $driver->id) }}" method="POST" onsubmit="return confirm('Delete {{ addslashes($driver->name) }}? This will remove all their data permanently.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-delete-user"><i class="fas fa-trash me-1"></i>Delete</button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

@@ -171,7 +171,7 @@
                 {{-- AI Recommend --}}
                 <div style="padding: 1rem 2.5rem 0;">
                     <button class="btn-recommend" id="recommendBtn" onclick="recommendDriver('{{ route('admin.recommend-driver', $user->parent->id) }}')"  >
-                        <i class="fas fa-robot"></i> AI Recommend Driver
+                        <i class="fas fa-robot"></i> Driver Recommendation
                     </button>
                     <div id="recommendResult"></div>
                 </div>
@@ -266,7 +266,7 @@ function recommendDriver(url) {
         .then(r => r.json())
         .then(data => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-robot"></i> AI Recommend Driver';
+            btn.innerHTML = '<i class="fas fa-robot"></i> Driver Recommendation';
 
             if (data.status === 'error') {
                 result.innerHTML = `<div class="rec-box error">⚠️ ${data.message}</div>`;
@@ -283,7 +283,7 @@ function recommendDriver(url) {
         })
         .catch(() => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-robot"></i> AI Recommend Driver';
+            btn.innerHTML = '<i class="fas fa-robot"></i> Driver Recommendation';
             result.innerHTML = `<div class="rec-box error">❌ Failed to fetch recommendation. Try again.</div>`;
         });
 }

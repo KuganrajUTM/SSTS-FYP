@@ -145,6 +145,47 @@
     </div>
 </div>
 
+{{-- Received Feedback from Driver --}}
+@if($receivedFeedbacks->isNotEmpty())
+<div class="card mb-4" style="border-color: rgba(0,123,255,0.3);">
+    <div class="card-header" style="background:#f0f5ff; border-bottom-color:rgba(0,123,255,0.3); color:#0a1628; font-weight:700;">
+        <i class="fas fa-inbox me-2" style="color:#007bff;"></i>Feedback Received from Driver
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>No</th>
+                        <th>From</th>
+                        <th>Type</th>
+                        <th>Details</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($receivedFeedbacks as $i => $fb)
+                    <tr>
+                        <td>{{ $i + 1 }}</td>
+                        <td><i class="fas fa-car me-1 text-muted"></i>{{ $fb->fromUser->name ?? '—' }}</td>
+                        <td>
+                            @if($fb->type === 'complaint')
+                                <span class="badge bg-danger">Complaint</span>
+                            @else
+                                <span class="badge bg-success">Feedback</span>
+                            @endif
+                        </td>
+                        <td>{{ $fb->comment }}</td>
+                        <td>{{ $fb->created_at->format('d M Y') }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- FAQ Section --}}
 <div class="card mb-4">
     <div class="card-header"><i class="fas fa-question-circle me-2"></i>Frequently Asked Questions</div>

@@ -11,11 +11,39 @@
 
 {{-- Submit Feedback Form --}}
 <div class="card mb-4">
-    <div class="card-header"><i class="fas fa-pen me-2"></i>Submit Feedback or Complaint to Management</div>
+    <div class="card-header"><i class="fas fa-pen me-2"></i>Submit Feedback or Complaint</div>
     <div class="card-body">
         <form action="{{ route('feedback.driver.store') }}" method="POST">
             @csrf
 
+            {{-- Send To --}}
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Send to</label>
+                <div class="d-flex gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="target" id="targetManagement" value="management" onchange="toggleDriverTarget('management')" checked>
+                        <label class="form-check-label" for="targetManagement"><i class="fas fa-building me-1 text-secondary"></i>Management</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="target" id="targetParent" value="parent" onchange="toggleDriverTarget('parent')">
+                        <label class="form-check-label" for="targetParent"><i class="fas fa-user-friends me-1 text-primary"></i>Parent</label>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Parent Dropdown (shown only when target = parent) --}}
+            <div class="mb-3" id="parentSection" style="display:none;">
+                <label class="form-label fw-semibold">Select Parent</label>
+                <select name="to_parent_id" class="form-select">
+                    <option value="">-- Select Parent --</option>
+                    @foreach($parents as $par)
+                        <option value="{{ $par->id }}">{{ $par->user->name ?? 'Unknown' }}</option>
+                    @endforeach
+                </select>
+                @error('to_parent_id')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- Type --}}
             <div class="mb-3">
                 <label class="form-label fw-semibold">Type</label>
                 <div class="d-flex gap-3">
@@ -51,7 +79,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>No</th>
-                        <th>About</th>
+                        <th>Sent To</th>
                         <th>Type</th>
                         <th>Details</th>
                         <th>Status</th>
@@ -63,7 +91,13 @@
                     @forelse($feedbacks as $i => $fb)
                     <tr>
                         <td>{{ $i + 1 }}</td>
-                        <td><span class="badge bg-secondary">Management</span></td>
+                        <td>
+                            @if($fb->to_parent_id && $fb->toParent)
+                                <span class="badge bg-primary"><i class="fas fa-user-friends me-1"></i>{{ $fb->toParent->user->name ?? 'Parent' }}</span>
+                            @else
+                                <span class="badge bg-secondary"><i class="fas fa-building me-1"></i>Management</span>
+                            @endif
+                        </td>
                         <td>
                             @if($fb->type === 'complaint')
                                 <span class="badge bg-danger">Complaint</span>
@@ -98,9 +132,9 @@
         <div class="accordion" id="driverFaq">
 
             <div class="accordion-item">
-                <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dfaq1">How do I submit feedback or a complaint to management?</button></h2>
+                <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dfaq1">Who can I send feedback to?</button></h2>
                 <div id="dfaq1" class="accordion-collapse collapse" data-bs-parent="#driverFaq">
-                    <div class="accordion-body text-muted">Select either <strong>Feedback</strong> or <strong>Complaint</strong> as the type, write your message in the details field, and click Submit. Your submission will be sent directly to the manager.</div>
+                    <div class="accordion-body text-muted">You can send feedback or a complaint to <strong>Management</strong> for work-related concerns, or directly to a <strong>Parent</strong> if the matter involves one of your passengers' guardians.</div>
                 </div>
             </div>
 
@@ -128,12 +162,18 @@
             <div class="accordion-item">
                 <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dfaq5">Is my complaint kept confidential?</button></h2>
                 <div id="dfaq5" class="accordion-collapse collapse" data-bs-parent="#driverFaq">
-                    <div class="accordion-body text-muted">Your complaint is only visible to the manager. Other drivers and parents cannot view your submission.</div>
+                    <div class="accordion-body text-muted">Feedback sent to Management is only visible to the manager. Feedback sent directly to a Parent is visible to that parent only.</div>
                 </div>
             </div>
 
         </div>
     </div>
 </div>
+
+<script>
+function toggleDriverTarget(target) {
+    document.getElementById('parentSection').style.display = target === 'parent' ? '' : 'none';
+}
+</script>
 
 @endsection

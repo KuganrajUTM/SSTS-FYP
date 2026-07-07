@@ -40,32 +40,33 @@ class ForgetPasswordManager extends Controller
     }
 
     public function resetPassword($token){
-        return view('new-password', compact('token'));
+        $record = DB::table('password_reset_tokens')->where('token', $token)->first();
+
+        if (!$record) {
+            return redirect()->route('forgot-password')->with('error', 'This reset link is invalid or has expired. Please request a new one.');
+        }
+
+        return view('new-password', ['token' => $token, 'email' => $record->email]);
     }
 
     public function updatePassword(Request $request){
         $request->validate([
-            'email' => "required|email|exists:users",
             'password' => "required|string|min:6|confirmed",
             'password_confirmation' => "required"
         ]);
 
-        $updatePassword = DB::table('password_reset_tokens')
-                                ->where([
-                                    'email' => $request->email,
-                                    'token' => $request->token
-                                ])->first();
+        $record = DB::table('password_reset_tokens')->where('token', $request->token)->first();
 
-        if(!$updatePassword){
+        if (!$record) {
             return redirect()->route('forgot-password')->with('error', 'This reset link is invalid or has expired. Please request a new one.');
         }
 
-        User::where('email', $request->email)->update([
+        User::where('email', $record->email)->update([
             'password' => Hash::make($request->password)
         ]);
 
-        DB::table('password_reset_tokens')->where(['email' => $request->email])->delete();
+        DB::table('password_reset_tokens')->where('token', $request->token)->delete();
 
-        return redirect()->to(route('login'))->with('success', 'Password reset was success');
+        return redirect()->to(route('login'))->with('success', 'Password reset was successful.');
     }
 }

@@ -24,6 +24,14 @@ class AdminController extends Controller
         return view('admin', compact('parents', 'drivers'));
     }
 
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return redirect()->route('admin.users')->with('success', ucfirst(strtolower($user->role === 'D' ? 'Driver' : 'Parent')) . ' account deleted successfully.');
+    }
+
     public function userDetails($id)
     {
         $user = User::with(['parent.children.driver.user', 'driver.verification'])->find($id);

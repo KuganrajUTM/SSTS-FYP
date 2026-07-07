@@ -123,18 +123,6 @@
         100% { opacity: 0; transform: translateY(-20px) translateX(-50%); }
     }
 
-    .school-pac-container gmp-placeautocomplete { display: block; width: 100%; }
-    .school-pac-container gmp-placeautocomplete::part(input) {
-        width: 100%; border-radius: 8px; padding: 10px 15px;
-        border: 1px solid var(--border-color); font-family: inherit;
-        font-size: 1rem; color: var(--navy); background: white;
-        transition: border-color 0.3s, box-shadow 0.3s; box-sizing: border-box;
-    }
-    .school-pac-container gmp-placeautocomplete::part(input):focus {
-        border-color: var(--emerald);
-        box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.15);
-        outline: none;
-    }
 
 </style>
 
@@ -244,12 +232,12 @@
                                                 <label class="form-label">School Name</label>
                                             </div>
                                             <div class="col-md-9">
-                                                <input type="hidden"
+                                                <input type="text"
                                                     name="children[{{ $child->id }}][school_name]"
-                                                    id="school-val-{{ $child->id }}"
-                                                    value="{{ old('children.'.$child->id.'.school_name', $child->school_name) }}">
-                                                <div class="school-pac-container"
-                                                    data-val-id="school-val-{{ $child->id }}"></div>
+                                                    class="form-control bg-white"
+                                                    placeholder="e.g. SJKT Bandar Springhill"
+                                                    value="{{ old('children.'.$child->id.'.school_name', $child->school_name) }}"
+                                                    autocomplete="off">
                                                 @error('children.'.$child->id.'.school_name') <small class="text-danger">{{ $message }}</small> @enderror
                                             </div>
                                         </div>
@@ -420,40 +408,5 @@
         }
     });
 
-    async function initSchoolPac(container) {
-        const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
-        const valId  = container.dataset.valId;
-        const hidden = document.getElementById(valId);
-        const pac = new PlaceAutocompleteElement({
-            componentRestrictions: { country: 'my' },
-            types: ['establishment'],
-            inputValue: hidden ? hidden.value : ''
-        });
-        container.appendChild(pac);
-        container._pac = pac;
-        pac.addEventListener('gmp-placeselect', async function ({ place }) {
-            await place.fetchFields({ fields: ['displayName'] });
-            if (hidden) hidden.value = place.displayName || '';
-        });
-    }
-
-    async function initEditMap() {
-        document.querySelectorAll('.school-pac-container').forEach(initSchoolPac);
-
-        // Before form submits, copy any typed-but-not-selected school name into hidden input
-        const form = document.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', function () {
-                document.querySelectorAll('.school-pac-container').forEach(function (container) {
-                    const valId  = container.dataset.valId;
-                    const hidden = document.getElementById(valId);
-                    if (hidden && !hidden.value && container._pac) {
-                        hidden.value = container._pac.inputValue || '';
-                    }
-                });
-            });
-        }
-    }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&callback=initEditMap&loading=async" async defer></script>
 @endsection

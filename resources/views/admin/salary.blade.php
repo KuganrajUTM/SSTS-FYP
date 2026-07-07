@@ -140,6 +140,7 @@
                         <th>Status</th>
                         <th>Paid Date</th>
                         <th>Receipt</th>
+                        <th>Payslip</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -159,13 +160,30 @@
                         </td>
                         <td>{{ $sal->paid_at ? \Carbon\Carbon::parse($sal->paid_at)->format('d M Y') : '-' }}</td>
                         <td>
-                            <form action="{{ route('admin.salary.receipt', $sal->id) }}" method="POST" enctype="multipart/form-data">
-                                @csrf
-                                <label style="cursor:pointer; margin:0;" title="{{ $sal->receipt_pdf ? 'Replace receipt' : 'Upload receipt' }}">
-                                    <input type="file" name="receipt" accept=".pdf" style="display:none;" onchange="this.form.submit()">
-                                    <i class="fas fa-upload" style="font-size:1.1rem; color:{{ $sal->receipt_pdf ? 'var(--emerald)' : '#aaa' }};"></i>
-                                </label>
-                            </form>
+                            <div class="d-flex align-items-center gap-2">
+                                <form action="{{ route('admin.salary.receipt', $sal->id) }}" method="POST" enctype="multipart/form-data" style="margin:0;">
+                                    @csrf
+                                    <label style="cursor:pointer; margin:0;" title="{{ $sal->receipt_pdf ? 'Replace receipt' : 'Upload receipt' }}">
+                                        <input type="file" name="receipt" accept=".pdf" style="display:none;" onchange="this.form.submit()">
+                                        <i class="fas fa-upload" style="font-size:1.1rem; color:{{ $sal->receipt_pdf ? 'var(--emerald)' : '#aaa' }};"></i>
+                                    </label>
+                                </form>
+                                @if($sal->receipt_pdf)
+                                    <a href="{{ asset('salary-receipts/' . $sal->receipt_pdf) }}" target="_blank" title="View proof" style="color:var(--emerald);">
+                                        <i class="fas fa-eye" style="font-size:1rem;"></i>
+                                    </a>
+                                @endif
+                            </div>
+                        </td>
+                        <td>
+                            @if($sal->status === 'Paid')
+                                <a href="{{ route('admin.salary.payslip', $sal->id) }}" title="Download payslip"
+                                   style="background:linear-gradient(135deg,var(--emerald),var(--emerald-dk)); color:#fff; border-radius:20px; padding:4px 14px; font-size:0.8rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fas fa-file-invoice"></i> Payslip
+                                </a>
+                            @else
+                                <span class="text-muted" style="font-size:0.85rem;">-</span>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

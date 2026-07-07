@@ -73,7 +73,8 @@
                         <th>Amount (RM)</th>
                         <th>Status</th>
                         <th>Paid Date</th>
-                        <th>Receipt</th>
+                        <th>Payment Proof</th>
+                        <th>Payslip</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -92,9 +93,19 @@
                         <td>{{ $sal->paid_at ? \Carbon\Carbon::parse($sal->paid_at)->format('d M Y') : '-' }}</td>
                         <td>
                             @if($sal->receipt_pdf)
-                                <a href="{{ asset('salary-receipts/' . $sal->receipt_pdf) }}" download
-                                   style="background:linear-gradient(135deg,var(--emerald),var(--emerald-dk)); color:#fff; border-radius:20px; padding:4px 14px; font-size:0.8rem; font-weight:600; text-decoration:none;">
-                                    <i class="fas fa-download me-1"></i> Download
+                                <a href="{{ asset('salary-receipts/' . $sal->receipt_pdf) }}" target="_blank"
+                                   style="background:linear-gradient(135deg,#0a1628,#1e3a5f); color:#fff; border-radius:20px; padding:4px 14px; font-size:0.8rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fas fa-file-alt"></i> View Proof
+                                </a>
+                            @else
+                                <span class="text-muted" style="font-size:0.85rem;">-</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($sal->status === 'Paid')
+                                <a href="{{ route('driver.salary.payslip', $sal->id) }}"
+                                   style="background:linear-gradient(135deg,var(--emerald),var(--emerald-dk)); color:#fff; border-radius:20px; padding:4px 14px; font-size:0.8rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fas fa-file-invoice"></i> Download
                                 </a>
                             @else
                                 <span class="text-muted" style="font-size:0.85rem;">-</span>

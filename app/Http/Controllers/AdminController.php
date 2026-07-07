@@ -153,6 +153,16 @@ class AdminController extends Controller
         return view('driver.salary', compact('salaries'));
     }
 
+    public function downloadPayslip(int $id)
+    {
+        $sal = DriverSalary::with('driver.user')->findOrFail($id);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payslip', ['sal' => $sal]);
+        $filename = 'payslip_' . $sal->driver->user->name . '_' . \Carbon\Carbon::create($sal->year, $sal->month)->format('M_Y') . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
     public function paymentRecords(Request $request)
     {
         $query = Payment::with(['child', 'parent.user', 'driver.user', 'receipt']);

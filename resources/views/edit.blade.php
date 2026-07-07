@@ -122,6 +122,19 @@
         90% { opacity: 1; transform: translateY(0) translateX(-50%); }
         100% { opacity: 0; transform: translateY(-20px) translateX(-50%); }
     }
+
+    gmp-placeautocomplete { display: block; width: 100%; }
+    gmp-placeautocomplete::part(input) {
+        width: 100%; border-radius: 8px; padding: 10px 15px;
+        border: 1px solid var(--border-color); font-family: inherit;
+        font-size: 1rem; color: var(--navy); background: white;
+        transition: border-color 0.3s, box-shadow 0.3s; box-sizing: border-box;
+    }
+    gmp-placeautocomplete::part(input):focus {
+        border-color: var(--emerald);
+        box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.15);
+        outline: none;
+    }
 </style>
 
 <div class="container my-5">
@@ -180,7 +193,8 @@
                                     <label for="location" class="form-label">Location</label>
                                 </div>
                                 <div class="col-md-9">
-                                    <input type="text" id="edit-location" name="location" class="form-control" value="{{ old('location', $parent->location) }}" autocomplete="off">
+                                    <input type="hidden" id="edit-location" name="location" value="{{ old('location', $parent->location) }}">
+                                    <div id="edit-location-pac"></div>
                                     @error('location') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                             </div>
@@ -281,7 +295,8 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">City</label>
-                                <input type="text" id="driver-city" name="city" class="form-control" value="{{ old('city', $driver->city) }}" placeholder="e.g. Johor Bahru" autocomplete="off">
+                                <input type="hidden" id="driver-city" name="city" value="{{ old('city', $driver->city) }}">
+                                <div id="driver-city-pac"></div>
                                 @error('city') <small class="text-danger">{{ $message }}</small> @enderror
                             </div>
                             <div class="mb-3">
@@ -291,7 +306,23 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Bank Name</label>
-                                <input type="text" name="bank_name" class="form-control" value="{{ old('bank_name', $driver->bank_name) }}" placeholder="e.g. Maybank">
+                                <select name="bank_name" class="form-control">
+                                    <option value="">-- Select Bank --</option>
+                                    @php
+                                        $malaysianBanks = [
+                                            'Maybank', 'CIMB Bank', 'Public Bank', 'RHB Bank', 'Hong Leong Bank',
+                                            'AmBank', 'Bank Islam', 'Bank Rakyat', 'Bank Muamalat', 'Affin Bank',
+                                            'Alliance Bank', 'OCBC Bank', 'Standard Chartered', 'HSBC Bank',
+                                            'UOB Malaysia', 'Citibank', 'Bank Simpanan Nasional (BSN)',
+                                            'Agrobank', 'MBSB Bank', 'Kuwait Finance House (KFH)',
+                                        ];
+                                    @endphp
+                                    @foreach($malaysianBanks as $bank)
+                                        <option value="{{ $bank }}" {{ old('bank_name', $driver->bank_name) === $bank ? 'selected' : '' }}>
+                                            {{ $bank }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 @error('bank_name') <small class="text-danger">{{ $message }}</small> @enderror
                             </div>
                             <div class="mb-3">
@@ -327,7 +358,8 @@
 </div>
 
 <script>
-    document.getElementById('add-child').addEventListener('click', function () {
+    const _addChild = document.getElementById('add-child');
+    if (_addChild) { _addChild.addEventListener('click', function () {
         const container = document.getElementById('children-list');
         const childCount = container.children.length;
 
@@ -366,7 +398,7 @@
             </div>
         `;
         container.insertAdjacentHTML('beforeend', newChild);
-    });
+    }); }
 
     function removeChild(btn) {
         if (!confirm('Remove this child? This will be permanent when you save.')) return;
@@ -384,44 +416,55 @@
         }
     });
 
-    function initEditMap() {
-        // Parent: location autocomplete → auto-fill city + district
-        const locEl  = document.getElementById('edit-location');
-        if (locEl) {
-            const acLoc = new google.maps.places.Autocomplete(locEl, {
+    async function initEditMap() {
+        const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+
+        // Parent: location → auto-fill city + district
+        const locHidden = document.getElementById('edit-location');
+        const locPac    = document.getElementById('edit-location-pac');
+        if (locPac) {
+            const pac = new PlaceAutocompleteElement({
                 componentRestrictions: { country: 'my' },
-                fields: ['address_components', 'formatted_address']
+                inputValue: locHidden ? locHidden.value : ''
             });
-            acLoc.addListener('place_changed', function () {
-                const place = acLoc.getPlace();
-                if (!place.address_components) return;
-                locEl.value = place.formatted_address;
+            locPac.appendChild(pac);
+            pac.addEventListener('gmp-placeselect', async function ({ place }) {
+                await place.fetchFields({ fields: ['addressComponents', 'formattedAddress'] });
+                if (locHidden) locHidden.value = place.formattedAddress;
                 let city = '', district = '';
-                place.address_components.forEach(function (c) {
-                    if (c.types.includes('locality'))                    city     = c.long_name;
-                    if (c.types.includes('administrative_area_level_2')) district = c.long_name;
+                (place.addressComponents || []).forEach(function (c) {
+                    if (c.types.includes('locality'))                    city     = c.longText;
+                    if (c.types.includes('administrative_area_level_2')) district = c.longText;
                 });
-                const cityEl     = document.getElementById('edit-city');
-                const districtEl = document.getElementById('edit-district');
-                if (cityEl)     cityEl.value     = city;
-                if (districtEl) districtEl.value = district;
+                const cityEl = document.getElementById('edit-city');
+                const distEl = document.getElementById('edit-district');
+                if (cityEl && city)     cityEl.value = city;
+                if (distEl && district) distEl.value = district;
             });
         }
 
-        // Driver: city autocomplete → auto-fill district
-        const driverCityEl = document.getElementById('driver-city');
-        if (driverCityEl) {
-            const acCity = new google.maps.places.Autocomplete(driverCityEl, {
+        // Driver: city → auto-fill district
+        const driverCityHidden = document.getElementById('driver-city');
+        const driverCityPac    = document.getElementById('driver-city-pac');
+        if (driverCityPac) {
+            const pac = new PlaceAutocompleteElement({
                 componentRestrictions: { country: 'my' },
                 types: ['(cities)'],
-                fields: ['address_components', 'name']
+                inputValue: driverCityHidden ? driverCityHidden.value : ''
             });
-            acCity.addListener('place_changed', function () {
-                const place = acCity.getPlace();
-                if (!place.address_components) return;
+            driverCityPac.appendChild(pac);
+            pac.addEventListener('gmp-placeselect', async function ({ place }) {
+                await place.fetchFields({ fields: ['addressComponents', 'formattedAddress'] });
+                if (driverCityHidden) {
+                    let city = '';
+                    (place.addressComponents || []).forEach(function (c) {
+                        if (c.types.includes('locality')) city = c.longText;
+                    });
+                    driverCityHidden.value = city || place.formattedAddress;
+                }
                 let district = '';
-                place.address_components.forEach(function (c) {
-                    if (c.types.includes('administrative_area_level_2')) district = c.long_name;
+                (place.addressComponents || []).forEach(function (c) {
+                    if (c.types.includes('administrative_area_level_2')) district = c.longText;
                 });
                 const distEl = document.getElementById('driver-district');
                 if (distEl && district) distEl.value = district;
@@ -429,5 +472,5 @@
         }
     }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&libraries=places&callback=initEditMap" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&callback=initEditMap&loading=async" async defer></script>
 @endsection

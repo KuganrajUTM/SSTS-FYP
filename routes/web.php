@@ -219,6 +219,8 @@ Route::post('/admin/salary', [AdminController::class, 'storeSalary'])->name('adm
 Route::post('/admin/salary/{id}/receipt', [AdminController::class, 'uploadSalaryReceipt'])->name('admin.salary.receipt');
 
 Route::get('/driver/salary', [AdminController::class, 'driverSalaryIndex'])->name('driver.salary');
+Route::get('/driver/salary/{id}/payslip', [AdminController::class, 'downloadPayslip'])->name('driver.salary.payslip');
+Route::get('/admin/salary/{id}/payslip', [AdminController::class, 'downloadPayslip'])->name('admin.salary.payslip');
 
 Route::get('/addsch',function(){
     return view('schedule.add');

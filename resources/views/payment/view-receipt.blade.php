@@ -111,9 +111,9 @@
         <header class="receipt-header">
             <div>
                 <h1>Prameswary Transportation Entreprise</h1>
-                <p>No.262, Jalan Springhill, 10/2, Bandar SPringhill, 71010, 
+                <p>No.262, Jalan Springhill, 10/2, Bandar SPringhill, 71010,<br> 
                     Lukut, Port Dikscon, Negeri Sembilan</p>
-                <p>Phone: +60357090 | Email: agentP@gmail.com</p>
+                <p>Phone: +60357090</p>
             </div>
             <div class="logo-placeholder">
                 <img src="assets/img/photo_2024-10-22_11-35-22-Photoroom.png" alt="SchoolBusPro Logo" style="width: 80px; height: 80px;">
@@ -159,7 +159,7 @@
         <footer class="receipt-footer" style="margin-top:50px">
             <p>
                 Thank you for your payment. If you have any questions, feel free to contact us at
-                <a href="mailto:contact@xyz.com">agentP@gmail.com</a>.
+                <a href="mailto:contact@xyz.com">parameswary4115@gmail.com</a>.
             </p>
         </footer>
     </div>

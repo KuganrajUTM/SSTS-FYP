@@ -229,15 +229,7 @@
                         </div>
                     @endif
 
-                    <div class="mt-5 pt-4 d-flex justify-content-between align-items-center border-top">
-                        <form id="remove-account-form" action="{{ route('profile.remove') }}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button type="button" class="btn btn-remove" onclick="confirmRemoval()">
-                                <i class="fas fa-trash-alt me-2"></i> Remove Account
-                            </button>
-                        </form>
-
+                    <div class="mt-5 pt-4 d-flex justify-content-end align-items-center border-top">
                         <a href="{{ route('profile.edit') }}" class="btn btn-edit">
                             <i class="fas fa-user-edit me-2"></i> Edit Profile
                         </a>
@@ -249,10 +241,4 @@
 </div>
 
 <script>
-    function confirmRemoval() {
-        if (confirm("Are you sure you want to remove your account? This action cannot be undone.")) {
-            document.getElementById('remove-account-form').submit();
-        }
-    }
-</script>
 @endsection

@@ -47,6 +47,12 @@
             <button onclick="dismissArrival()" style="background:none;border:none;color:#fff;margin-left:auto;font-size:1.2rem;cursor:pointer;line-height:1;">&times;</button>
         </div>
 
+        {{-- ETA Card --}}
+        <div id="etaCard" style="display:none; background:#f0fdf9; border:1.5px solid rgba(0,184,148,0.3); border-radius:10px; padding:10px 16px; margin-bottom:12px; font-size:0.88rem; color:#0a1628; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+            <span><i class="fas fa-route me-1" style="color:#00b894;"></i> <span id="etaDistance">—</span></span>
+            <span><i class="fas fa-clock me-1" style="color:#00b894;"></i> ETA: <strong id="etaDuration">—</strong></span>
+        </div>
+
         <div id="map" style="height:500px; border-radius:12px; border:1.5px solid rgba(0,184,148,0.3); overflow:hidden;"></div>
         <p id="mapStatus" class="mt-2 text-muted" style="font-size:0.8rem;"></p>
     </div>
@@ -306,11 +312,12 @@
     const schoolNames     = JSON.parse('{!! json_encode($schoolNames ?? []) !!}');
     const locationBaseUrl = '{{ url("/driver/location") }}';
 
-    let map, geocoder;
+    let map, geocoder, directionsService;
     let markers      = {};
     let infoWindows  = {};
     let schoolCoords = [];
     let arrivalShown = false;
+    let etaLastFetch = 0;
 
     function distanceM(lat1, lon1, lat2, lon2) {
         const R = 6371000;
@@ -380,6 +387,27 @@
         });
     }
 
+    function fetchEta(vanLat, vanLng) {
+        if (!schoolCoords.length) return;
+        const now = Date.now();
+        if (now - etaLastFetch < 30000) return; // only call every 30s
+        etaLastFetch = now;
+
+        const school = schoolCoords[0];
+        directionsService.route({
+            origin:      { lat: vanLat, lng: vanLng },
+            destination: { lat: school.lat, lng: school.lng },
+            travelMode:  google.maps.TravelMode.DRIVING
+        }, function(result, status) {
+            if (status === 'OK') {
+                const leg = result.routes[0].legs[0];
+                document.getElementById('etaDistance').textContent = leg.distance.text + ' from school';
+                document.getElementById('etaDuration').textContent = leg.duration.text;
+                document.getElementById('etaCard').style.display = 'flex';
+            }
+        });
+    }
+
     function fetchLocations() {
         driverIds.forEach(function(driverId) {
             fetch(locationBaseUrl + '/' + driverId)
@@ -405,11 +433,13 @@
                         }
                         document.getElementById('mapStatus').textContent = 'Last updated: ' + new Date(data.timestamp).toLocaleTimeString();
                         checkArrival(pos.lat, pos.lng);
+                        fetchEta(pos.lat, pos.lng);
                     } else {
                         if (markers[driverId]) {
                             markers[driverId].setMap(null);
                             delete markers[driverId];
                         }
+                        document.getElementById('etaCard').style.display = 'none';
                         document.getElementById('mapStatus').textContent = 'Driver is not sharing location.';
                     }
                 })
@@ -424,7 +454,8 @@
             center: { lat: 3.1390, lng: 101.6869 },
             zoom: 12
         });
-        geocoder = new google.maps.Geocoder();
+        geocoder          = new google.maps.Geocoder();
+        directionsService = new google.maps.DirectionsService();
         geocodeSchools();
         fetchLocations();
         setInterval(fetchLocations, 5000);

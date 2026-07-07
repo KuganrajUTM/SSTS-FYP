@@ -244,7 +244,12 @@
                                                 <label class="form-label">School Name</label>
                                             </div>
                                             <div class="col-md-9">
-                                                <input type="text" name="children[{{ $child->id }}][school_name]" class="form-control bg-white" value="{{ old('children.'.$child->id.'.school_name', $child->school_name) }}">
+                                                <input type="hidden"
+                                                    name="children[{{ $child->id }}][school_name]"
+                                                    id="school-val-{{ $child->id }}"
+                                                    value="{{ old('children.'.$child->id.'.school_name', $child->school_name) }}">
+                                                <div class="school-pac-container"
+                                                    data-val-id="school-val-{{ $child->id }}"></div>
                                                 @error('children.'.$child->id.'.school_name') <small class="text-danger">{{ $message }}</small> @enderror
                                             </div>
                                         </div>
@@ -380,7 +385,8 @@
                 <div class="row mb-3">
                     <div class="col-md-3"><label class="form-label">School Name:</label></div>
                     <div class="col-md-9">
-                        <input type="text" name="children[new_${childCount}][school_name]" class="form-control" value="">
+                        <input type="hidden" name="children[new_${childCount}][school_name]" id="school-val-new_${childCount}" value="">
+                        <div class="school-pac-container" data-val-id="school-val-new_${childCount}"></div>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -398,6 +404,8 @@
             </div>
         `;
         container.insertAdjacentHTML('beforeend', newChild);
+        const newPac = container.lastElementChild.querySelector('.school-pac-container');
+        if (newPac) initSchoolPac(newPac);
     }); }
 
     function removeChild(btn) {
@@ -416,8 +424,27 @@
         }
     });
 
+    async function initSchoolPac(container) {
+        const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+        const valId = container.dataset.valId;
+        const hidden = document.getElementById(valId);
+        const pac = new PlaceAutocompleteElement({
+            componentRestrictions: { country: 'my' },
+            types: ['establishment'],
+            inputValue: hidden ? hidden.value : ''
+        });
+        container.appendChild(pac);
+        pac.addEventListener('gmp-placeselect', async function ({ place }) {
+            await place.fetchFields({ fields: ['displayName'] });
+            if (hidden) hidden.value = place.displayName || '';
+        });
+    }
+
     async function initEditMap() {
         const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+
+        // School name autocomplete for all children
+        document.querySelectorAll('.school-pac-container').forEach(initSchoolPac);
 
         // Parent: location → auto-fill city + district
         const locHidden = document.getElementById('edit-location');

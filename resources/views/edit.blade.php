@@ -123,18 +123,6 @@
         100% { opacity: 0; transform: translateY(-20px) translateX(-50%); }
     }
 
-    gmp-placeautocomplete { display: block; width: 100%; }
-    gmp-placeautocomplete::part(input) {
-        width: 100%; border-radius: 8px; padding: 10px 15px;
-        border: 1px solid var(--border-color); font-family: inherit;
-        font-size: 1rem; color: var(--navy); background: white;
-        transition: border-color 0.3s, box-shadow 0.3s; box-sizing: border-box;
-    }
-    gmp-placeautocomplete::part(input):focus {
-        border-color: var(--emerald);
-        box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.15);
-        outline: none;
-    }
 </style>
 
 <div class="container my-5">
@@ -193,8 +181,7 @@
                                     <label for="location" class="form-label">Location</label>
                                 </div>
                                 <div class="col-md-9">
-                                    <input type="hidden" id="edit-location" name="location" value="{{ old('location', $parent->location) }}">
-                                    <div id="edit-location-pac"></div>
+                                    <input type="text" id="edit-location" name="location" class="form-control" placeholder="Search for your address" value="{{ old('location', $parent->location) }}" autocomplete="off">
                                     @error('location') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                             </div>
@@ -244,12 +231,13 @@
                                                 <label class="form-label">School Name</label>
                                             </div>
                                             <div class="col-md-9">
-                                                <input type="hidden"
+                                                <input type="text"
                                                     name="children[{{ $child->id }}][school_name]"
-                                                    id="school-val-{{ $child->id }}"
-                                                    value="{{ old('children.'.$child->id.'.school_name', $child->school_name) }}">
-                                                <div class="school-pac-container"
-                                                    data-val-id="school-val-{{ $child->id }}"></div>
+                                                    id="school-input-{{ $child->id }}"
+                                                    class="form-control bg-white school-ac-input"
+                                                    placeholder="e.g. SJKT Bandar Springhill"
+                                                    value="{{ old('children.'.$child->id.'.school_name', $child->school_name) }}"
+                                                    autocomplete="off">
                                                 @error('children.'.$child->id.'.school_name') <small class="text-danger">{{ $message }}</small> @enderror
                                             </div>
                                         </div>
@@ -300,8 +288,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">City</label>
-                                <input type="hidden" id="driver-city" name="city" value="{{ old('city', $driver->city) }}">
-                                <div id="driver-city-pac"></div>
+                                <input type="text" id="driver-city" name="city" class="form-control" placeholder="e.g. Johor Bahru" value="{{ old('city', $driver->city) }}" autocomplete="off">
                                 @error('city') <small class="text-danger">{{ $message }}</small> @enderror
                             </div>
                             <div class="mb-3">
@@ -385,8 +372,7 @@
                 <div class="row mb-3">
                     <div class="col-md-3"><label class="form-label">School Name:</label></div>
                     <div class="col-md-9">
-                        <input type="hidden" name="children[new_${childCount}][school_name]" id="school-val-new_${childCount}" value="">
-                        <div class="school-pac-container" data-val-id="school-val-new_${childCount}"></div>
+                        <input type="text" name="children[new_${childCount}][school_name]" id="school-input-new_${childCount}" class="form-control school-ac-input" placeholder="e.g. SJKT Bandar Springhill" value="" autocomplete="off">
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -404,8 +390,8 @@
             </div>
         `;
         container.insertAdjacentHTML('beforeend', newChild);
-        const newPac = container.lastElementChild.querySelector('.school-pac-container');
-        if (newPac) initSchoolPac(newPac);
+        const newInput = container.lastElementChild.querySelector('.school-ac-input');
+        if (newInput && typeof google !== 'undefined') initSchoolAc(newInput);
     }); }
 
     function removeChild(btn) {
@@ -424,44 +410,38 @@
         }
     });
 
-    async function initSchoolPac(container) {
-        const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
-        const valId = container.dataset.valId;
-        const hidden = document.getElementById(valId);
-        const pac = new PlaceAutocompleteElement({
+    function initSchoolAc(input) {
+        if (!input) return;
+        const ac = new google.maps.places.Autocomplete(input, {
             componentRestrictions: { country: 'my' },
             types: ['establishment'],
-            inputValue: hidden ? hidden.value : ''
+            fields: ['name']
         });
-        container.appendChild(pac);
-        pac.addEventListener('gmp-placeselect', async function ({ place }) {
-            await place.fetchFields({ fields: ['displayName'] });
-            if (hidden) hidden.value = place.displayName || '';
+        ac.addListener('place_changed', function () {
+            const place = ac.getPlace();
+            if (place && place.name) input.value = place.name;
         });
     }
 
-    async function initEditMap() {
-        const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
-
-        // School name autocomplete for all children
-        document.querySelectorAll('.school-pac-container').forEach(initSchoolPac);
+    function initEditMap() {
+        // School name autocomplete for all existing children
+        document.querySelectorAll('.school-ac-input').forEach(initSchoolAc);
 
         // Parent: location → auto-fill city + district
-        const locHidden = document.getElementById('edit-location');
-        const locPac    = document.getElementById('edit-location-pac');
-        if (locPac) {
-            const pac = new PlaceAutocompleteElement({
+        const locInput = document.getElementById('edit-location');
+        if (locInput) {
+            const ac = new google.maps.places.Autocomplete(locInput, {
                 componentRestrictions: { country: 'my' },
-                inputValue: locHidden ? locHidden.value : ''
+                fields: ['address_components', 'formatted_address']
             });
-            locPac.appendChild(pac);
-            pac.addEventListener('gmp-placeselect', async function ({ place }) {
-                await place.fetchFields({ fields: ['addressComponents', 'formattedAddress'] });
-                if (locHidden) locHidden.value = place.formattedAddress;
+            ac.addListener('place_changed', function () {
+                const place = ac.getPlace();
+                if (!place || !place.formatted_address) return;
+                locInput.value = place.formatted_address;
                 let city = '', district = '';
-                (place.addressComponents || []).forEach(function (c) {
-                    if (c.types.includes('locality'))                    city     = c.longText;
-                    if (c.types.includes('administrative_area_level_2')) district = c.longText;
+                (place.address_components || []).forEach(function (c) {
+                    if (c.types.includes('locality'))                    city     = c.long_name;
+                    if (c.types.includes('administrative_area_level_2')) district = c.long_name;
                 });
                 const cityEl = document.getElementById('edit-city');
                 const distEl = document.getElementById('edit-district');
@@ -471,27 +451,24 @@
         }
 
         // Driver: city → auto-fill district
-        const driverCityHidden = document.getElementById('driver-city');
-        const driverCityPac    = document.getElementById('driver-city-pac');
-        if (driverCityPac) {
-            const pac = new PlaceAutocompleteElement({
+        const driverCityInput = document.getElementById('driver-city');
+        if (driverCityInput) {
+            const ac = new google.maps.places.Autocomplete(driverCityInput, {
                 componentRestrictions: { country: 'my' },
                 types: ['(cities)'],
-                inputValue: driverCityHidden ? driverCityHidden.value : ''
+                fields: ['address_components', 'formatted_address', 'name']
             });
-            driverCityPac.appendChild(pac);
-            pac.addEventListener('gmp-placeselect', async function ({ place }) {
-                await place.fetchFields({ fields: ['addressComponents', 'formattedAddress'] });
-                if (driverCityHidden) {
-                    let city = '';
-                    (place.addressComponents || []).forEach(function (c) {
-                        if (c.types.includes('locality')) city = c.longText;
-                    });
-                    driverCityHidden.value = city || place.formattedAddress;
-                }
+            ac.addListener('place_changed', function () {
+                const place = ac.getPlace();
+                if (!place) return;
+                let city = '';
+                (place.address_components || []).forEach(function (c) {
+                    if (c.types.includes('locality')) city = c.long_name;
+                });
+                driverCityInput.value = city || place.name || place.formatted_address;
                 let district = '';
-                (place.addressComponents || []).forEach(function (c) {
-                    if (c.types.includes('administrative_area_level_2')) district = c.longText;
+                (place.address_components || []).forEach(function (c) {
+                    if (c.types.includes('administrative_area_level_2')) district = c.long_name;
                 });
                 const distEl = document.getElementById('driver-district');
                 if (distEl && district) distEl.value = district;
@@ -499,5 +476,5 @@
         }
     }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&callback=initEditMap&loading=async" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&libraries=places&callback=initEditMap&loading=async" async defer></script>
 @endsection

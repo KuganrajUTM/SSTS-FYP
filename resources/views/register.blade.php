@@ -371,18 +371,6 @@
       .bus-svg-wrap svg { width: 120px; height: 48px; }
     }
 
-    /* Google PlaceAutocompleteElement styling */
-    #location-pac-container gmp-placeautocomplete { display: block; width: 100%; }
-    #location-pac-container gmp-placeautocomplete::part(input) {
-      width: 100%; background: var(--input-bg); border: 1.5px solid #dde3ea;
-      border-radius: 10px; padding: 0.7rem 1rem 0.7rem 2.5rem;
-      color: var(--navy); font-family: 'DM Sans', sans-serif;
-      font-size: 0.92rem; transition: border-color 0.2s, background 0.2s;
-      outline: none; box-sizing: border-box;
-    }
-    #location-pac-container gmp-placeautocomplete::part(input):focus {
-      border-color: var(--emerald); background: var(--emerald-lt);
-    }
   </style>
 </head>
 <body>
@@ -525,12 +513,12 @@
         </div>
       </div>
 
-      <!-- ── LOCATION WITH OPENSTREETMAP AUTOCOMPLETE ── -->
       <label>Home Location <span style="color:#e74c3c">*</span></label>
       <div class="input-wrap" style="position:relative">
         <i class="bi bi-geo-alt icon-left"></i>
-        <input type="hidden" id="location-hidden" name="location" value="{{ old('location') }}">
-        <div id="location-pac-container"></div>
+        <input type="text" id="location-input" name="location"
+          placeholder="Search for your city or address"
+          value="{{ old('location') }}" autocomplete="off">
       </div>
       @error('location')<p class="err-text">{{ $message }}</p>@enderror
 
@@ -566,27 +554,23 @@
 </div>
 
 <script>
-  async function initRegisterMap() {
-    const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+  function initRegisterMap() {
+    const input = document.getElementById('location-input');
+    if (!input) return;
 
-    const container = document.getElementById('location-pac-container');
-    const hiddenLoc = document.getElementById('location-hidden');
-    if (!container) return;
-
-    const pac = new PlaceAutocompleteElement({
+    const ac = new google.maps.places.Autocomplete(input, {
       componentRestrictions: { country: 'my' },
-      inputValue: hiddenLoc ? hiddenLoc.value : '',
-      placeholder: 'Search for your city or address'
+      fields: ['address_components', 'formatted_address']
     });
-    container.appendChild(pac);
 
-    pac.addEventListener('gmp-placeselect', async function ({ place }) {
-      await place.fetchFields({ fields: ['addressComponents', 'formattedAddress'] });
-      if (hiddenLoc) hiddenLoc.value = place.formattedAddress;
+    ac.addListener('place_changed', function () {
+      const place = ac.getPlace();
+      if (!place || !place.formatted_address) return;
+      input.value = place.formatted_address;
       let city = '', district = '';
-      (place.addressComponents || []).forEach(function (c) {
-        if (c.types.includes('locality'))                    city     = c.longText;
-        if (c.types.includes('administrative_area_level_2')) district = c.longText;
+      (place.address_components || []).forEach(function (c) {
+        if (c.types.includes('locality'))                    city     = c.long_name;
+        if (c.types.includes('administrative_area_level_2')) district = c.long_name;
       });
       const cityInput     = document.getElementById('reg-city');
       const districtInput = document.getElementById('reg-district');
@@ -595,6 +579,6 @@
     });
   }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&callback=initRegisterMap&loading=async" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&libraries=places&callback=initRegisterMap&loading=async" async defer></script>
 </body>
 </html>

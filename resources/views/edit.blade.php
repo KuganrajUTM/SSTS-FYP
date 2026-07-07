@@ -123,6 +123,19 @@
         100% { opacity: 0; transform: translateY(-20px) translateX(-50%); }
     }
 
+    .school-pac-container gmp-placeautocomplete { display: block; width: 100%; }
+    .school-pac-container gmp-placeautocomplete::part(input) {
+        width: 100%; border-radius: 8px; padding: 10px 15px;
+        border: 1px solid var(--border-color); font-family: inherit;
+        font-size: 1rem; color: var(--navy); background: white;
+        transition: border-color 0.3s, box-shadow 0.3s; box-sizing: border-box;
+    }
+    .school-pac-container gmp-placeautocomplete::part(input):focus {
+        border-color: var(--emerald);
+        box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.15);
+        outline: none;
+    }
+
 </style>
 
 <div class="container my-5">
@@ -231,13 +244,12 @@
                                                 <label class="form-label">School Name</label>
                                             </div>
                                             <div class="col-md-9">
-                                                <input type="text"
+                                                <input type="hidden"
                                                     name="children[{{ $child->id }}][school_name]"
-                                                    id="school-input-{{ $child->id }}"
-                                                    class="form-control bg-white school-ac-input"
-                                                    placeholder="e.g. SJKT Bandar Springhill"
-                                                    value="{{ old('children.'.$child->id.'.school_name', $child->school_name) }}"
-                                                    autocomplete="off">
+                                                    id="school-val-{{ $child->id }}"
+                                                    value="{{ old('children.'.$child->id.'.school_name', $child->school_name) }}">
+                                                <div class="school-pac-container"
+                                                    data-val-id="school-val-{{ $child->id }}"></div>
                                                 @error('children.'.$child->id.'.school_name') <small class="text-danger">{{ $message }}</small> @enderror
                                             </div>
                                         </div>
@@ -372,7 +384,8 @@
                 <div class="row mb-3">
                     <div class="col-md-3"><label class="form-label">School Name:</label></div>
                     <div class="col-md-9">
-                        <input type="text" name="children[new_${childCount}][school_name]" id="school-input-new_${childCount}" class="form-control school-ac-input" placeholder="e.g. SJKT Bandar Springhill" value="" autocomplete="off">
+                        <input type="hidden" name="children[new_${childCount}][school_name]" id="school-val-new_${childCount}" value="">
+                        <div class="school-pac-container" data-val-id="school-val-new_${childCount}"></div>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -390,8 +403,8 @@
             </div>
         `;
         container.insertAdjacentHTML('beforeend', newChild);
-        const newInput = container.lastElementChild.querySelector('.school-ac-input');
-        if (newInput && typeof google !== 'undefined') initSchoolAc(newInput);
+        const newPac = container.lastElementChild.querySelector('.school-pac-container');
+        if (newPac && typeof google !== 'undefined') initSchoolPac(newPac);
     }); }
 
     function removeChild(btn) {
@@ -410,71 +423,40 @@
         }
     });
 
-    function initSchoolAc(input) {
-        if (!input) return;
-        const ac = new google.maps.places.Autocomplete(input, {
+    async function initSchoolPac(container) {
+        const { PlaceAutocompleteElement } = await google.maps.importLibrary("places");
+        const valId  = container.dataset.valId;
+        const hidden = document.getElementById(valId);
+        const pac = new PlaceAutocompleteElement({
             componentRestrictions: { country: 'my' },
             types: ['establishment'],
-            fields: ['name']
+            inputValue: hidden ? hidden.value : ''
         });
-        ac.addListener('place_changed', function () {
-            const place = ac.getPlace();
-            if (place && place.name) input.value = place.name;
+        container.appendChild(pac);
+        container._pac = pac;
+        pac.addEventListener('gmp-placeselect', async function ({ place }) {
+            await place.fetchFields({ fields: ['displayName'] });
+            if (hidden) hidden.value = place.displayName || '';
         });
     }
 
-    function initEditMap() {
-        // School name autocomplete for all existing children
-        document.querySelectorAll('.school-ac-input').forEach(initSchoolAc);
+    async function initEditMap() {
+        document.querySelectorAll('.school-pac-container').forEach(initSchoolPac);
 
-        // Parent: location → auto-fill city + district
-        const locInput = document.getElementById('edit-location');
-        if (locInput) {
-            const ac = new google.maps.places.Autocomplete(locInput, {
-                componentRestrictions: { country: 'my' },
-                fields: ['address_components', 'formatted_address']
-            });
-            ac.addListener('place_changed', function () {
-                const place = ac.getPlace();
-                if (!place || !place.formatted_address) return;
-                locInput.value = place.formatted_address;
-                let city = '', district = '';
-                (place.address_components || []).forEach(function (c) {
-                    if (c.types.includes('locality'))                    city     = c.long_name;
-                    if (c.types.includes('administrative_area_level_2')) district = c.long_name;
+        // Before form submits, copy any typed-but-not-selected school name into hidden input
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                document.querySelectorAll('.school-pac-container').forEach(function (container) {
+                    const valId  = container.dataset.valId;
+                    const hidden = document.getElementById(valId);
+                    if (hidden && !hidden.value && container._pac) {
+                        hidden.value = container._pac.inputValue || '';
+                    }
                 });
-                const cityEl = document.getElementById('edit-city');
-                const distEl = document.getElementById('edit-district');
-                if (cityEl && city)     cityEl.value = city;
-                if (distEl && district) distEl.value = district;
-            });
-        }
-
-        // Driver: city → auto-fill district
-        const driverCityInput = document.getElementById('driver-city');
-        if (driverCityInput) {
-            const ac = new google.maps.places.Autocomplete(driverCityInput, {
-                componentRestrictions: { country: 'my' },
-                types: ['(cities)'],
-                fields: ['address_components', 'formatted_address', 'name']
-            });
-            ac.addListener('place_changed', function () {
-                const place = ac.getPlace();
-                if (!place) return;
-                let city = '';
-                (place.address_components || []).forEach(function (c) {
-                    if (c.types.includes('locality')) city = c.long_name;
-                });
-                driverCityInput.value = city || place.name || place.formatted_address;
-                let district = '';
-                (place.address_components || []).forEach(function (c) {
-                    if (c.types.includes('administrative_area_level_2')) district = c.long_name;
-                });
-                const distEl = document.getElementById('driver-district');
-                if (distEl && district) distEl.value = district;
             });
         }
     }
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&libraries=places&callback=initEditMap&loading=async" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&callback=initEditMap&loading=async" async defer></script>
 @endsection

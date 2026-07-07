@@ -553,32 +553,5 @@
   </div>
 </div>
 
-<script>
-  function initRegisterMap() {
-    const input = document.getElementById('location-input');
-    if (!input) return;
-
-    const ac = new google.maps.places.Autocomplete(input, {
-      componentRestrictions: { country: 'my' },
-      fields: ['address_components', 'formatted_address']
-    });
-
-    ac.addListener('place_changed', function () {
-      const place = ac.getPlace();
-      if (!place || !place.formatted_address) return;
-      input.value = place.formatted_address;
-      let city = '', district = '';
-      (place.address_components || []).forEach(function (c) {
-        if (c.types.includes('locality'))                    city     = c.long_name;
-        if (c.types.includes('administrative_area_level_2')) district = c.long_name;
-      });
-      const cityInput     = document.getElementById('reg-city');
-      const districtInput = document.getElementById('reg-district');
-      if (cityInput && city)         cityInput.value     = city;
-      if (districtInput && district) districtInput.value = district;
-    });
-  }
-</script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&libraries=places&callback=initRegisterMap&loading=async" async defer></script>
 </body>
 </html>

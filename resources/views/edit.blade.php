@@ -384,8 +384,7 @@
                 <div class="row mb-3">
                     <div class="col-md-3"><label class="form-label">School Name:</label></div>
                     <div class="col-md-9">
-                        <input type="hidden" name="children[new_${childCount}][school_name]" id="school-val-new_${childCount}" value="">
-                        <div class="school-pac-container" data-val-id="school-val-new_${childCount}"></div>
+                        <input type="text" name="children[new_${childCount}][school_name]" class="form-control" placeholder="e.g. SJKT Bandar Springhill" value="" autocomplete="off">
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -403,8 +402,6 @@
             </div>
         `;
         container.insertAdjacentHTML('beforeend', newChild);
-        const newPac = container.lastElementChild.querySelector('.school-pac-container');
-        if (newPac && typeof google !== 'undefined') initSchoolPac(newPac);
     }); }
 
     function removeChild(btn) {

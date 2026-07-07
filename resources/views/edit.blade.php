@@ -180,7 +180,7 @@
                                     <label for="location" class="form-label">Location</label>
                                 </div>
                                 <div class="col-md-9">
-                                    <input type="text" name="location" class="form-control" value="{{ old('location', $parent->location) }}">
+                                    <input type="text" id="edit-location" name="location" class="form-control" value="{{ old('location', $parent->location) }}" autocomplete="off">
                                     @error('location') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                             </div>
@@ -190,7 +190,7 @@
                                     <label class="form-label">City <span class="text-danger">*</span></label>
                                 </div>
                                 <div class="col-md-9">
-                                    <input type="text" name="city" class="form-control" placeholder="e.g. Johor Bahru" value="{{ old('city', $parent->city) }}">
+                                    <input type="text" id="edit-city" name="city" class="form-control" placeholder="e.g. Johor Bahru" value="{{ old('city', $parent->city) }}" autocomplete="off">
                                     @error('city') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                             </div>
@@ -200,7 +200,7 @@
                                     <label class="form-label">District <span class="text-danger">*</span></label>
                                 </div>
                                 <div class="col-md-9">
-                                    <input type="text" name="district" class="form-control" placeholder="e.g. Skudai" value="{{ old('district', $parent->district) }}">
+                                    <input type="text" id="edit-district" name="district" class="form-control" placeholder="e.g. Skudai" value="{{ old('district', $parent->district) }}" autocomplete="off">
                                     @error('district') <small class="text-danger">{{ $message }}</small> @enderror
                                 </div>
                             </div>
@@ -281,12 +281,12 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">City</label>
-                                <input type="text" name="city" class="form-control" value="{{ old('city', $driver->city) }}" placeholder="e.g. Johor Bahru">
+                                <input type="text" id="driver-city" name="city" class="form-control" value="{{ old('city', $driver->city) }}" placeholder="e.g. Johor Bahru" autocomplete="off">
                                 @error('city') <small class="text-danger">{{ $message }}</small> @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">District</label>
-                                <input type="text" name="district" class="form-control" value="{{ old('district', $driver->district) }}" placeholder="e.g. Skudai">
+                                <input type="text" id="driver-district" name="district" class="form-control" value="{{ old('district', $driver->district) }}" placeholder="e.g. Skudai" autocomplete="off">
                                 @error('district') <small class="text-danger">{{ $message }}</small> @enderror
                             </div>
                             <div class="mb-3">
@@ -383,5 +383,51 @@
             }, 5000);
         }
     });
+
+    function initEditMap() {
+        // Parent: location autocomplete → auto-fill city + district
+        const locEl  = document.getElementById('edit-location');
+        if (locEl) {
+            const acLoc = new google.maps.places.Autocomplete(locEl, {
+                componentRestrictions: { country: 'my' },
+                fields: ['address_components', 'formatted_address']
+            });
+            acLoc.addListener('place_changed', function () {
+                const place = acLoc.getPlace();
+                if (!place.address_components) return;
+                locEl.value = place.formatted_address;
+                let city = '', district = '';
+                place.address_components.forEach(function (c) {
+                    if (c.types.includes('locality'))                    city     = c.long_name;
+                    if (c.types.includes('administrative_area_level_2')) district = c.long_name;
+                });
+                const cityEl     = document.getElementById('edit-city');
+                const districtEl = document.getElementById('edit-district');
+                if (cityEl)     cityEl.value     = city;
+                if (districtEl) districtEl.value = district;
+            });
+        }
+
+        // Driver: city autocomplete → auto-fill district
+        const driverCityEl = document.getElementById('driver-city');
+        if (driverCityEl) {
+            const acCity = new google.maps.places.Autocomplete(driverCityEl, {
+                componentRestrictions: { country: 'my' },
+                types: ['(cities)'],
+                fields: ['address_components', 'name']
+            });
+            acCity.addListener('place_changed', function () {
+                const place = acCity.getPlace();
+                if (!place.address_components) return;
+                let district = '';
+                place.address_components.forEach(function (c) {
+                    if (c.types.includes('administrative_area_level_2')) district = c.long_name;
+                });
+                const distEl = document.getElementById('driver-district');
+                if (distEl && district) distEl.value = district;
+            });
+        }
+    }
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&libraries=places&callback=initEditMap" async defer></script>
 @endsection

@@ -218,6 +218,42 @@
         </div>
     </div>
 </div>
+{{-- No-children reminder (admin) --}}
+@if($user->role === 'P' && $user->parent && $user->parent->children->isEmpty())
+<div class="modal fade" id="noChildrenModal" tabindex="-1" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;border:1.5px solid rgba(0,184,148,0.25);">
+            <div class="modal-header" style="background:#fff8e1;border-bottom:1.5px solid rgba(253,203,110,0.4);">
+                <h5 class="modal-title" style="font-family:'Syne',sans-serif;font-weight:700;color:#b7791f;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Child Info Missing
+                </h5>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div style="width:64px;height:64px;background:#fff8e1;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.1rem;border:2px solid rgba(253,203,110,0.5);">
+                    <i class="bi bi-person-fill-exclamation" style="font-size:1.8rem;color:#f6ad55;"></i>
+                </div>
+                <p style="font-size:0.95rem;color:#4a5568;margin:0;">
+                    This parent has not added any child information yet.<br>
+                    Please ask them to go to <strong>Edit Profile</strong> and add their child's details before a driver can be assigned.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top:1.5px solid rgba(253,203,110,0.25);justify-content:center;">
+                <button type="button" class="btn btn-sm" data-bs-dismiss="modal"
+                    style="background:linear-gradient(135deg,#f6ad55,#dd6b20);color:#fff;font-weight:700;border-radius:8px;font-family:'Syne',sans-serif;font-size:0.9rem;padding:0.45rem 1.5rem;">
+                    <i class="bi bi-check2 me-1"></i> OK, Got It
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new bootstrap.Modal(document.getElementById('noChildrenModal')).show();
+    });
+</script>
+@endif
+
 <script>
 function recommendDriver(url) {
     const btn = document.getElementById('recommendBtn');

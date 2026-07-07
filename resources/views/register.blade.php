@@ -527,7 +527,7 @@
         <label>City <span style="color:#e74c3c">*</span></label>
         <div class="input-wrap">
           <i class="bi bi-building icon-left"></i>
-          <input type="text" name="city" placeholder="e.g. Johor Bahru" value="{{ old('city') }}">
+          <input type="text" id="reg-city" name="city" placeholder="e.g. Johor Bahru" value="{{ old('city') }}" autocomplete="off">
         </div>
         @error('city')<p class="err-text">{{ $message }}</p>@enderror
       </div>
@@ -536,7 +536,7 @@
         <label>District <span style="color:#e74c3c">*</span></label>
         <div class="input-wrap">
           <i class="bi bi-map icon-left"></i>
-          <input type="text" name="district" placeholder="e.g. Skudai" value="{{ old('district') }}">
+          <input type="text" id="reg-district" name="district" placeholder="e.g. Skudai" value="{{ old('district') }}" autocomplete="off">
         </div>
         @error('district')<p class="err-text">{{ $message }}</p>@enderror
       </div>
@@ -555,57 +555,32 @@
 </div>
 
 <script>
-  const locInput = document.getElementById('location-input');
-  const locSuggestions = document.getElementById('location-suggestions');
-  let debounceTimer;
+  function initRegisterMap() {
+    const locInput     = document.getElementById('location-input');
+    const cityInput    = document.getElementById('reg-city');
+    const districtInput = document.getElementById('reg-district');
 
-  locInput.addEventListener('input', function() {
-    clearTimeout(debounceTimer);
-    const query = this.value.trim();
+    const ac = new google.maps.places.Autocomplete(locInput, {
+      componentRestrictions: { country: 'my' },
+      fields: ['address_components', 'formatted_address']
+    });
 
-    if (query.length < 3) {
-      locSuggestions.style.display = 'none';
-      return;
-    }
+    ac.addListener('place_changed', function () {
+      const place = ac.getPlace();
+      if (!place.address_components) return;
 
-    locSuggestions.innerHTML = '<div class="suggestion-loading"><i class="bi bi-arrow-repeat"></i> Searching...</div>';
-    locSuggestions.style.display = 'block';
+      locInput.value = place.formatted_address;
 
-    debounceTimer = setTimeout(() => {
-      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=my&format=json&limit=5&addressdetails=1`, {
-        headers: { 'Accept-Language': 'en' }
-      })
-      .then(res => res.json())
-      .then(data => {
-        locSuggestions.innerHTML = '';
-        if (data.length === 0) {
-          locSuggestions.innerHTML = '<div class="suggestion-loading">No results found</div>';
-          return;
-        }
-
-        data.forEach(place => {
-          const item = document.createElement('div');
-          item.className = 'suggestion-item';
-          item.innerHTML = `<i class="bi bi-geo-alt-fill"></i> ${place.display_name}`;
-          item.addEventListener('click', () => {
-            locInput.value = place.display_name;
-            locSuggestions.style.display = 'none';
-          });
-          locSuggestions.appendChild(item);
-        });
-      })
-      .catch(() => {
-        locSuggestions.innerHTML = '<div class="suggestion-loading">Error connecting to map server</div>';
+      let city = '', district = '';
+      place.address_components.forEach(function (c) {
+        if (c.types.includes('locality'))                      city     = c.long_name;
+        if (c.types.includes('administrative_area_level_2'))   district = c.long_name;
       });
-    }, 500);
-  });
-
-  // Close suggestions box if clicked outside
-  document.addEventListener('click', function(e) {
-    if (!locInput.contains(e.target) && !locSuggestions.contains(e.target)) {
-      locSuggestions.style.display = 'none';
-    }
-  });
+      if (cityInput)     cityInput.value     = city;
+      if (districtInput) districtInput.value = district;
+    });
+  }
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google_maps.key') }}&libraries=places&callback=initRegisterMap" async defer></script>
 </body>
 </html>

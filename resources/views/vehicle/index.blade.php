@@ -62,8 +62,8 @@
 </style>
 
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="page-title"><i class="fas fa-bus me-2"></i>Vehicle List</h2>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h2 class="page-title mb-0"><i class="fas fa-bus me-2"></i>Vehicle List</h2>
         <a href="{{ route('vehicles.create') }}" class="btn btn-primary px-4 py-2">
             <i class="fas fa-plus-circle me-1"></i> Add Vehicle
         </a>
@@ -85,13 +85,13 @@
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th class="ps-3" style="width:5%;">No.</th>
-                            <th style="width:18%;">Vehicle Number</th>
-                            <th style="width:20%;">Model Name</th>
-                            <th style="width:16%;">Legal Document</th>
-                            <th style="width:17%;">APAD Expiry</th>
-                            <th style="width:18%;">Assigned Driver</th>
-                            <th style="width:12%;">Actions</th>
+                            <th class="ps-3">No.</th>
+                            <th>Vehicle Number</th>
+                            <th>Model Name</th>
+                            <th>Legal Document</th>
+                            <th>APAD Expiry</th>
+                            <th>Assigned Driver</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>

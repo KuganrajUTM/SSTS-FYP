@@ -33,9 +33,12 @@
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                    <a class="dropdown-item py-2" href="{{ route('login') }}" style="color: #e74c3c;">
-                        <i class="fas fa-sign-out-alt me-2"></i> Logout
-                    </a>
+                    <form method="POST" action="{{ route('logout') }}" style="margin:0;">
+                        @csrf
+                        <button type="submit" class="dropdown-item py-2" style="color:#e74c3c; background:none; border:none; width:100%; text-align:left; cursor:pointer;">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </button>
+                    </form>
                 </li>
             </ul>
         </li>

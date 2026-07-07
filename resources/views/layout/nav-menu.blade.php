@@ -32,10 +32,6 @@
                         Feedback
                     </a>
                 @elseif($userRole == 'D')
-                    <a class="nav-link ssts-nav-link" href="{{ route('schedules.index') }}">
-                        <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
-                        Schedule
-                    </a>
                     <a class="nav-link ssts-nav-link" href="{{ route('ann') }}">
                         <div class="sb-nav-link-icon"><i class="fas fa-bullhorn"></i></div>
                         Announcements

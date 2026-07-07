@@ -24,8 +24,9 @@
                 Driver List
 
             </div>
-        <div class="card-body">
-            <table class="table table-bordered table-responsive-md">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+            <table class="table table-bordered mb-0">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -49,6 +50,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>

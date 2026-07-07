@@ -226,6 +226,7 @@ class AdminController extends Controller
     {
         $messages = SosMessage::with('driver.user')
             ->where('deleted_by_admin', false)
+            ->where('created_at', '>=', now()->subHours(24))
             ->orderBy('created_at', 'desc')
             ->get();
         return view('admin.sos', compact('messages'));

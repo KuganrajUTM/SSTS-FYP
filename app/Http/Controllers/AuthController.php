@@ -90,6 +90,14 @@ class AuthController extends Controller
         }
     }
 
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
+    }
+
     public function Driver_register(Request $request)
     {
 
@@ -118,10 +126,6 @@ class AuthController extends Controller
             'role' => 'D',
         ]);
     
-        if (!$user) {
-            dd("User creation failed");
-        }
-    
         // Create the driver
         $driver = $user->driver()->create([
             'VRN'                 => $request->input('vrn'),
@@ -129,21 +133,13 @@ class AuthController extends Controller
             'bank_name'           => $request->input('bank_name'),
             'bank_account_number' => $request->input('bank_account_number'),
         ]);
-    
-        if (!$driver) {
-            dd("Driver creation failed");
-        }
-    
+
         // Save the document
         $doc = $driver->docs()->create([
             'docs' => $pdfData,
             'license' => $license,
         ]);
     
-        if (!$doc) {
-            dd("Docs creation failed");
-        }
-        
         Verification::create([
             'driver_id' => $driver->id,
             'doc_id'    => $doc->id,

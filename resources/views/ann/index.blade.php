@@ -79,11 +79,30 @@
         border-color: var(--emerald);
         box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.1);
     }
+
+    /* Mobile-responsive card headers and filter forms */
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .filter-form {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+    .filter-form .form-select-sm,
+    .filter-form .form-control-sm {
+        min-width: 0;
+    }
 </style>
 
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="ann-title">Announcements</h2>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h2 class="ann-title mb-0">Announcements</h2>
         <a href="{{ route('ann.create') }}" class="btn btn-primary px-4 py-2">
             <i class="fas fa-plus-circle me-1"></i> Add Announcement
         </a>
@@ -145,34 +164,30 @@
     @endif
 
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header card-header-flex">
             <span><i class="fas fa-bullhorn me-2"></i>Your Announcements</span>
-            
-            <form method="GET" action="{{ route('ann') }}" class="d-flex align-items-center">
-                <div class="me-2">
-                    <select name="filter_option" class="form-select form-select-sm">
-                        <option value="">View all</option>
-                        <option value="absence" {{ request('filter_option') == 'absence' ? 'selected' : '' }}>Absence</option>
-                        <option value="delay" {{ request('filter_option') == 'delay' ? 'selected' : '' }}>Delay</option>
-                    </select>
-                </div>
-                <div class="me-2">
-                    <input type="date" name="date" class="form-control form-control-sm" value="{{ request('date') }}">
-                </div>
+
+            <form method="GET" action="{{ route('ann') }}" class="filter-form">
+                <select name="filter_option" class="form-select form-select-sm">
+                    <option value="">View all</option>
+                    <option value="absence" {{ request('filter_option') == 'absence' ? 'selected' : '' }}>Absence</option>
+                    <option value="delay" {{ request('filter_option') == 'delay' ? 'selected' : '' }}>Delay</option>
+                </select>
+                <input type="date" name="date" class="form-control form-control-sm" value="{{ request('date') }}">
                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-                <a href="{{ route('ann') }}" class="btn btn-secondary btn-sm ms-2">Reset</a>
+                <a href="{{ route('ann') }}" class="btn btn-secondary btn-sm">Reset</a>
             </form>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0" style="table-layout: fixed;">
+                <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">No.</th>
-                            <th style="width: 20%;">Title</th>
-                            <th style="width: 35%;">Content</th>
-                            <th style="width: 15%;">Created At</th>
-                            <th style="width: 15%;">Actions</th>
+                            <th>No.</th>
+                            <th>Title</th>
+                            <th>Content</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -208,13 +223,13 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0" style="table-layout: fixed;">
+                <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">No.</th>
-                            <th style="width: 25%;">Title</th>
-                            <th style="width: 50%;">Content</th>
-                            <th style="width: 20%;">Created At</th>
+                            <th>No.</th>
+                            <th>Title</th>
+                            <th>Content</th>
+                            <th>Created At</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -239,34 +254,30 @@
     @elseif($userRole == 'D')
     
     <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header card-header-flex">
             <span><i class="fas fa-user-circle me-2"></i>Your Driver Updates</span>
-            
-            <form method="GET" action="{{ route('ann') }}" class="d-flex align-items-center">
-                <div class="me-2">
-                    <select name="filter_option" class="form-select form-select-sm">
-                        <option value="">View all</option>
-                        <option value="absence" {{ request('filter_option') == 'absence' ? 'selected' : '' }}>Absence</option>
-                        <option value="delay" {{ request('filter_option') == 'delay' ? 'selected' : '' }}>Delay</option>
-                    </select>
-                </div>
-                <div class="me-2">
-                    <input type="date" name="date" class="form-control form-control-sm" value="{{ request('date') }}">
-                </div>
+
+            <form method="GET" action="{{ route('ann') }}" class="filter-form">
+                <select name="filter_option" class="form-select form-select-sm">
+                    <option value="">View all</option>
+                    <option value="absence" {{ request('filter_option') == 'absence' ? 'selected' : '' }}>Absence</option>
+                    <option value="delay" {{ request('filter_option') == 'delay' ? 'selected' : '' }}>Delay</option>
+                </select>
+                <input type="date" name="date" class="form-control form-control-sm" value="{{ request('date') }}">
                 <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-                <a href="{{ route('ann') }}" class="btn btn-secondary btn-sm ms-2">Reset</a>
+                <a href="{{ route('ann') }}" class="btn btn-secondary btn-sm">Reset</a>
             </form>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0" style="table-layout: fixed;">
+                <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">No.</th>
-                            <th style="width: 20%;">Title</th>
-                            <th style="width: 35%;">Content</th>
-                            <th style="width: 15%;">Created At</th>
-                            <th style="width: 15%;">Actions</th>
+                            <th>No.</th>
+                            <th>Title</th>
+                            <th>Content</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -302,14 +313,14 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0" style="table-layout: fixed;">
+                <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th style="width: 7%;">No.</th>
-                            <th style="width: 20%;">Parent Name</th>
-                            <th style="width: 15%;">Title</th>
-                            <th style="width: 50%;">Content</th>
-                            <th style="width: 20%;">Created At</th>
+                            <th>No.</th>
+                            <th>Parent Name</th>
+                            <th>Title</th>
+                            <th>Content</th>
+                            <th>Created At</th>
                         </tr>
                     </thead>
                     <tbody>

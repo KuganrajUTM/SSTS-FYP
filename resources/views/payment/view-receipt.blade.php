@@ -25,7 +25,8 @@
             border: 2px solid rgba(0,184,148,0.3);
             border-radius: 12px;
             padding: 24px;
-            width: 600px;
+            max-width: 600px;
+            width: 100%;
             box-shadow: 0 8px 24px rgba(0,184,148,0.12);
             gap: 20px;
             position: relative;
@@ -36,6 +37,21 @@
             grid-template-columns: 1fr auto;
             align-items: center;
             gap: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .receipt-details {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+            .receipt-header {
+                grid-template-columns: 1fr;
+            }
+            .logo-placeholder {
+                position: static;
+                margin-bottom: 10px;
+            }
+            h1 { font-size: 18px; }
         }
 
         .logo-placeholder {

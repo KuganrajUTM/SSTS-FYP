@@ -64,6 +64,7 @@ class SosController extends Controller
         $messages = SosMessage::with('driver.user')
             ->whereIn('driver_id', $driverIds)
             ->where('deleted_by_parent', false)
+            ->where('created_at', '>=', now()->subHours(24))
             ->orderBy('created_at', 'desc')
             ->get();
 

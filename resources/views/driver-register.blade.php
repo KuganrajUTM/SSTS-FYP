@@ -596,7 +596,7 @@
       </div>
 
       <div>
-        <label>Upload SPAD Document <span style="color:#a0aab4; font-size:0.7rem">(PDF only)</span> <span style="color:#e74c3c">*</span></label>
+        <label>Upload Identification Card (IC) <span style="color:#a0aab4; font-size:0.7rem">(PDF only)</span> <span style="color:#e74c3c">*</span></label>
         <div class="file-wrap">
           <div class="file-label-box" id="spad-box">
             <i class="bi bi-file-earmark-pdf"></i>

@@ -94,10 +94,10 @@
                         <td class="align-middle">
                             <div class="d-flex flex-column gap-1">
                                 <a href="{{ route('view-pdf', ['docs_name' => 'SPAD', 'id' => $driver->id]) }}" target="_blank" class="btn btn-sm btn-primary" style="font-size:0.78rem; white-space:nowrap;">
-                                    <i class="fas fa-file-alt me-1"></i>SPAD
+                                    <i class="fas fa-id-card me-1"></i>IC
                                 </a>
                                 <a href="{{ route('view-pdf', ['docs_name' => 'LIC', 'id' => $driver->id]) }}" target="_blank" class="btn btn-sm btn-secondary" style="font-size:0.78rem; white-space:nowrap;">
-                                    <i class="fas fa-id-card me-1"></i>License
+                                    <i class="fas fa-file-alt me-1"></i>Driving License
                                 </a>
                             </div>
                         </td>

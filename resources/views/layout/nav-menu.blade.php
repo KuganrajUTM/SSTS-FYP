@@ -11,17 +11,19 @@
                 </a>
 
                 @if($userRole == 'P')
-                    <a class="nav-link ssts-nav-link" href="{{ route('parent_pay') }}">
+                    <a class="nav-link ssts-nav-link d-flex align-items-center" href="{{ route('parent_pay') }}">
                         <div class="sb-nav-link-icon"><i class="fa-solid fa-sack-dollar"></i></div>
                         Payment
+                        @if(!empty($navDots['payment'])) <span class="nav-dot ms-auto"></span> @endif
                     </a>
                     <a class="nav-link ssts-nav-link" href="{{ route('receipt') }}">
                         <div class="sb-nav-link-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                         Receipt
                     </a>
-                    <a class="nav-link ssts-nav-link" href="{{ route('ann') }}">
+                    <a class="nav-link ssts-nav-link d-flex align-items-center" href="{{ route('ann') }}">
                         <div class="sb-nav-link-icon"><i class="fas fa-bullhorn"></i></div>
                         Announcements
+                        @if(!empty($navDots['announcements'])) <span class="nav-dot ms-auto"></span> @endif
                     </a>
                     <a class="nav-link ssts-nav-link" href="{{ route('parent.sos') }}">
                         <div class="sb-nav-link-icon"><i class="fas fa-exclamation-triangle" style="color:#e74c3c !important;"></i></div>
@@ -32,9 +34,10 @@
                         Feedback
                     </a>
                 @elseif($userRole == 'D')
-                    <a class="nav-link ssts-nav-link" href="{{ route('ann') }}">
+                    <a class="nav-link ssts-nav-link d-flex align-items-center" href="{{ route('ann') }}">
                         <div class="sb-nav-link-icon"><i class="fas fa-bullhorn"></i></div>
                         Announcements
+                        @if(!empty($navDots['announcements'])) <span class="nav-dot ms-auto"></span> @endif
                     </a>
                     <a class="nav-link ssts-nav-link" href="{{ route('driver.salary') }}">
                         <div class="sb-nav-link-icon"><i class="fas fa-money-bill-wave"></i></div>
@@ -65,9 +68,10 @@
                         <div class="sb-nav-link-icon"><i class="fas fa-money-bill-wave"></i></div>
                         Driver Salary
                     </a>
-                    <a class="nav-link ssts-nav-link" href="{{ route('admin.sos') }}">
+                    <a class="nav-link ssts-nav-link d-flex align-items-center" href="{{ route('admin.sos') }}">
                         <div class="sb-nav-link-icon"><i class="fas fa-exclamation-triangle" style="color:#e74c3c !important;"></i></div>
                         SOS Inbox
+                        @if(!empty($navDots['sos'])) <span class="nav-dot ms-auto"></span> @endif
                     </a>
                     <a class="nav-link ssts-nav-link" href="{{ route('admin.driver-keys') }}">
                         <div class="sb-nav-link-icon"><i class="fas fa-key"></i></div>
@@ -105,6 +109,20 @@
         background-color: rgba(0, 184, 148, 0.1) !important;
         color: var(--white) !important;
         border-left: 3px solid var(--emerald);
+    }
+
+    .nav-dot {
+        width: 9px;
+        height: 9px;
+        background: #e74c3c;
+        border-radius: 50%;
+        flex-shrink: 0;
+        animation: nav-dot-pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes nav-dot-pulse {
+        0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(231,76,60,0.7); }
+        50%       { opacity: 0.7; box-shadow: 0 0 0 5px rgba(231,76,60,0); }
     }
 
     /* Red styling specifically for Logout */
